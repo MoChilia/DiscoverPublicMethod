@@ -1,0 +1,23 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+	<PropertyGroup>
+		<OutputType>Exe</OutputType>
+		<TargetFrameworks>net472</TargetFrameworks>
+
+		<RoslynVersion>4.2.0</RoslynVersion>
+		<MicrosoftBuildVersion>17.2.0</MicrosoftBuildVersion>
+	</PropertyGroup>
+
+	<ItemGroup>
+		<PackageReference Include="Microsoft.CodeAnalysis.Common" Version="$(RoslynVersion)" />
+		<PackageReference Include="Microsoft.CodeAnalysis.CSharp" Version="$(RoslynVersion)" />
+		<PackageReference Include="Microsoft.CodeAnalysis.CSharp.Workspaces" Version="$(RoslynVersion)" />
+		<PackageReference Include="Microsoft.CodeAnalysis.Workspaces.Common" Version="$(RoslynVersion)" />
+		<PackageReference Include="Microsoft.CodeAnalysis.Workspaces.MSBuild" Version="$(RoslynVersion)" />
+		<PackageReference Include="Microsoft.Build" Version="$(MicrosoftBuildVersion)" />
+		<PackageReference Include="Microsoft.Build.Framework" Version="$(MicrosoftBuildVersion)" />
+		<PackageReference Include="Microsoft.Build.Tasks.Core" Version="$(MicrosoftBuildVersion)" />
+		<PackageReference Include="Microsoft.Build.Utilities.Core" Version="$(MicrosoftBuildVersion)"/>
+		<PackageReference Include="Microsoft.Azure.Management.KeyVault" Version="4.0.0-preview.1" />
+	</ItemGroup>
+</Project>

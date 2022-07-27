@@ -1,8 +1,5 @@
 ﻿using System;
-using System.Collections.Immutable;
 using System.Collections.Generic;
-using System.IO;
-using System.Text;
 using System.Linq;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
@@ -10,9 +7,7 @@ using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.FindSymbols;
 using Microsoft.CodeAnalysis.MSBuild;
 using System.Threading.Tasks;
-using Microsoft.CodeAnalysis.Text;
-using System.Xaml.Schema;
-using System.Text.RegularExpressions;
+
 
 namespace DiscoverPublicMethod
 {
@@ -23,45 +18,36 @@ namespace DiscoverPublicMethod
         public static Compilation compilation;
         public static IEnumerable<Project> projects;
 
-        public async Task GetChainBottomUp(string solutionPath, string documentName)
+        public async Task GetChainBottomUp(string solutionPath, string projectName)
         {
             var workspace = MSBuildWorkspace.Create();
             workspace.LoadMetadataForReferencedProjects = true;
             var solution = await workspace.OpenSolutionAsync(solutionPath);
-            foreach (var project in solution.Projects)
+            var project = solution.Projects.SingleOrDefault(p => p.Name == projectName);
+            Console.WriteLine("Project Name is: " + project.Name);
+            var assembly = new Asm();
+            string assemblyName = "Microsoft.Azure.Management.KeyVault";
+            List<Tuple<string, string,string>> methodNames = assembly.load(assemblyName);
+            foreach (var method in methodNames)
             {
-                compilation = await project.GetCompilationAsync();
-                Console.WriteLine("Project Name is: " + project.Name);
-                Console.WriteLine("Project Assembly Name is :" + project.AssemblyName);
-                var document = project.Documents.Where(d => d.Name == documentName).FirstOrDefault();
-                if (document == null)
+                var externalFunctions = await SymbolFinder.FindDeclarationsAsync(project, method.Item2, true);
+                foreach (var externalFunction in externalFunctions)
                 {
-                    return;
-                }
-                Console.WriteLine("\tDocument Name is: " + document.Name);
-                var assembly = new Asm();
-                string assemblyName = "Microsoft.Azure.Management.KeyVault";
-                List<Tuple<string, string>> methodNames = assembly.load(assemblyName);
-                foreach (var method in methodNames)
-                {
-                    var declarationsToMethod = await SymbolFinder.FindDeclarationsAsync(project, method.Item2, false);
-                    //if(!declarationsToMethod.Any())
-                    //{
-                    //    Console.WriteLine($"The method {method} is not called in {document.Name}");
-                    //    continue;
-                    //}
-                    foreach(var declaration in declarationsToMethod)
+                    if (externalFunction.ContainingType != null && method.Item1.Equals(externalFunction.ContainingType.ToString()))
                     {
-                        if (declaration.ContainingType != null && method.Item1.Equals(declaration.ContainingType.ToString()))
+                        var callers = await SymbolFinder.FindReferencesAsync(externalFunction, solution);
+                        foreach (var referenced in callers)
                         {
-                            var referencesToSampleMethod = await SymbolFinder.FindReferencesAsync(declaration, solution);
-                            foreach (var reference in referencesToSampleMethod)
+                            if(referenced.Locations.Count() == 0)
                             {
-                                var referenceSymbol = reference.Definition;
-                                if (!method.Item2.Equals(referenceSymbol.Name))
-                                {
-                                    Console.WriteLine($"The method {method.Item1}:{method.Item2} is called by {referenceSymbol.ContainingType}:{referenceSymbol.Name}");
-                                }
+                                break;
+                            }
+                            Console.WriteLine($"Number of references {referenced.Definition.Name} {referenced.Locations.Count()}");
+                            Console.WriteLine($"Function name is {externalFunction.ToString()}");
+                            Console.WriteLine($"Method name is: {method.Item1}.{method.Item2}{method.Item3}");
+                            foreach (var location in referenced.Locations)
+                            {
+                                Console.WriteLine($"FileName (line#) {location.Location.SourceTree.FilePath} ({location.Location.GetLineSpan().StartLinePosition.Line + 1})");
                             }
                         }
                     }
@@ -69,76 +55,59 @@ namespace DiscoverPublicMethod
             }
         }
 
-        public async Task GetChainTopDown(string solutionPath, string documentName)
+        public async Task GetChainTopDown(string solutionPath, string projectName)
         {
             var workspace = MSBuildWorkspace.Create();
             workspace.LoadMetadataForReferencedProjects = true;
             var solution = await workspace.OpenSolutionAsync(solutionPath);
-            foreach (var project in solution.Projects)
+            var project = solution.Projects.SingleOrDefault(p => p.Name == projectName);
+            compilation = await project.GetCompilationAsync();
+            Console.WriteLine("Project Name is: " + project.Name);
+            foreach(var document in project.Documents) 
             {
-                compilation = await project.GetCompilationAsync();
-                Console.WriteLine("Project Name is: " + project.Name);
-                Console.WriteLine("Project Assembly Name is :" + project.AssemblyName);
-                var document = project.Documents.Where(d => d.Name == documentName).FirstOrDefault();
-                if (document != null)
+                var model = await document.GetSemanticModelAsync();
+                var root = await document.GetSyntaxRootAsync();
+                var methodDeclarations = root.DescendantNodes().OfType<MethodDeclarationSyntax>();
+                foreach (var method in methodDeclarations)
                 {
-                    Console.WriteLine("\tDocument Name is: " + document.Name);
-                    var model = await document.GetSemanticModelAsync();
-                    var root = await document.GetSyntaxRootAsync();
-                    var methodDeclarations = root.DescendantNodes().OfType<MethodDeclarationSyntax>();
-                    foreach (var method in methodDeclarations)
-                    {
-                        var currMethod = method;
-                        List<string> callChain = new List<string>();
-                        Console.WriteLine("\t\tMethod Name is: " + method.Identifier.Text);
-                        currMethod = FindMethod(model, currMethod, callChain);
-                    }
-                    break;
+                    var currMethod = method;
+                    List<string> callChain = new List<string>();
+                    currMethod = FindMethod(model, currMethod, callChain);
                 }
             }
         }
         public MethodDeclarationSyntax FindMethod(SemanticModel model, MethodDeclarationSyntax method, List<string> callChain)
         {
-            if (method == null || model == null)
+            if (method == null || model == null|| visited.Contains(method))
             {
-                Console.WriteLine("The method is null now");
-                return null;
-            }
-            if (visited.Contains(method))
-            {
-                Console.WriteLine("The method has visited");
                 return null;
             }
             visited.Add(method);
-            callChain.Add(method.Identifier.Text);
+            var loc = method.GetLocation();
+            var line = loc.GetLineSpan().StartLinePosition.Line + 1;
+            var filePath = $"[FileName (line#){loc.SourceTree.FilePath} ({line})]";
+            callChain.Add(method.Identifier.Text + filePath);
             var Invocations = method.DescendantNodes().OfType<InvocationExpressionSyntax>();
             foreach (InvocationExpressionSyntax invoc in Invocations)
             {
                 if (visited.Contains(invoc))
                 {
-                    Console.WriteLine("Have invoked the expression");
                     continue;
                 }
-                Console.WriteLine("\t\t\t\t\t-----Invocations-----");
-                Console.WriteLine("\t\t\t\t\t" + invoc.Expression);  // output: b1.ADD
                 var invokedSymbol = model.GetSymbolInfo(invoc).Symbol;
                 if (invokedSymbol != null)
                 {
-                    Console.WriteLine("\t\t\t\t\t" + invokedSymbol.ToString()); //AppTest.B.ADD(int)
-                    Console.WriteLine($"Method {method.Identifier.Text} invoke {invokedSymbol.Name}");
                     //Invoke API from third-party library
                     if (invokedSymbol.DeclaringSyntaxReferences.IsEmpty)
                     {
                         string symbolNameSpace = invokedSymbol.ContainingNamespace.ToString();
-                        Console.WriteLine("\t\t\t\t\t" + symbolNameSpace);
                         if (symbolNameSpace.Contains("Microsoft.Azure.Management"))
                         {
                             List<string> callChainCopy = new List<string>();
                             callChain.ForEach(i => callChainCopy.Add(i));
-                            callChainCopy.Add(invokedSymbol.ToString());
-                            callChainCopy.Add("Invoke API from SDK");
+                            filePath = $"[{invokedSymbol.Locations.FirstOrDefault().ToString()}]";
+                            callChainCopy.Add(invokedSymbol.ToString()+ filePath);
                             callChains.Add(callChainCopy);
-                            OutputCallChain(callChainCopy);
                         }
                         continue;
                     }
@@ -147,7 +116,6 @@ namespace DiscoverPublicMethod
                         var nextMethod = (MethodDeclarationSyntax)reference.GetSyntaxAsync().Result;
                         var tree = reference.SyntaxTree;
                         var nextModel = compilation.GetSemanticModel(tree);
-                        //Console.WriteLine(nextMethod.Kind());
 
                         List<string> callChainMemory = new List<string>();
                         callChain.ForEach(i => callChainMemory.Add(i));

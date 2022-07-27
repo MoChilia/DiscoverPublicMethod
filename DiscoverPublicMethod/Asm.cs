@@ -16,11 +16,9 @@ namespace DiscoverPublicMethod
             var typeNameList = new List<Tuple<string, string, string>>();
             foreach(var type in a.GetTypes())
             {
-                //Console.WriteLine("Type is: "+ type.FullName);
                 foreach (var method in type.GetMethods(BindingFlags.Public | BindingFlags.Instance | BindingFlags.Static))
                 {
                     string parameterName = "(";
-                    //Console.WriteLine("method is: " + method.Name);
                     int i = 1;
                     foreach (var parameter in method.GetParameters())
                     {
@@ -40,21 +38,6 @@ namespace DiscoverPublicMethod
                 //var interfaces = type.GetInterfaces();
             }
             return typeNameList;
-        }
-
-        public void trace()
-        {
-            StackTrace trace = new StackTrace(true);
-            foreach (StackFrame frame in trace.GetFrames())
-            {
-                Console.WriteLine("GetFileColumnNumber:" + frame.GetFileColumnNumber());
-                Console.WriteLine("GetFileLineNumber:" + frame.GetFileLineNumber());
-                Console.WriteLine("GetFileName:" + frame.GetFileName());
-                Console.WriteLine("GetType:" + frame.GetType());
-                Console.WriteLine("GetILOffset:" + frame.GetILOffset());
-                Console.WriteLine("GetNativeOffset:" + frame.GetNativeOffset());
-                Console.WriteLine(frame.GetMethod().Name);
-            }
         }
     }
 }

@@ -49,6 +49,7 @@ namespace DiscoverPublicMethod
                             {
                                 Console.WriteLine($"FileName (line#) {location.Location.SourceTree.FilePath} ({location.Location.GetLineSpan().StartLinePosition.Line + 1})");
                             }
+                            Console.WriteLine("\n");
                         }
                     }
                 }
@@ -105,8 +106,11 @@ namespace DiscoverPublicMethod
                         {
                             List<string> callChainCopy = new List<string>();
                             callChain.ForEach(i => callChainCopy.Add(i));
-                            filePath = $"[{invokedSymbol.Locations.FirstOrDefault().ToString()}]";
-                            callChainCopy.Add(invokedSymbol.ToString()+ filePath);
+                            loc = invoc.GetLocation();
+                            line = loc.GetLineSpan().StartLinePosition.Line + 1;
+                            filePath = $"[FileName (line#){loc.SourceTree.FilePath} ({line})]";
+                            var dllPath = $"[{invokedSymbol.Locations.FirstOrDefault().ToString()}]";
+                            callChainCopy.Add(invokedSymbol.ToString()+ filePath + dllPath);
                             callChains.Add(callChainCopy);
                         }
                         continue;

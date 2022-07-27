@@ -14,8 +14,6 @@ namespace DiscoverPublicMethod
             var roslynCompiler = new RoslynCompiler();
             var solutionPath = @"D:\AzPwsh\azure-powershell\src\KeyVault\KeyVault.sln";
             var projectName = "KeyVault";
-            //var documentName = "GetAzureKeyVault.cs";
-            //var methodName = "GetDeleted";
 
             //await roslynCompiler.GetChainBottomUp(solutionPath, projectName);
 

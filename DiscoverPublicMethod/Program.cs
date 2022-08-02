@@ -14,11 +14,12 @@ namespace DiscoverPublicMethod
             var roslynCompiler = new RoslynCompiler();
             var solutionPath = @"D:\AzPwsh\azure-powershell\src\KeyVault\KeyVault.sln";
             var projectName = "KeyVault";
-
-            //await roslynCompiler.GetChainBottomUp(solutionPath, projectName);
-
-            await roslynCompiler.GetChainTopDown(solutionPath, projectName);
+            string assemblyName = "Microsoft.Azure.Management.KeyVault";
+            await roslynCompiler.GetChainBottomUp(solutionPath, projectName, assemblyName);
             roslynCompiler.OutputCallChains();
+
+            //await roslynCompiler.GetChainTopDown(solutionPath, projectName);
+            //roslynCompiler.OutputCallChains();
         }
     }
 }

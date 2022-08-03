@@ -4,6 +4,11 @@ using System.Diagnostics;
 using System.Linq;
 using System.Collections.Generic;
 using System.Windows.Forms;
+using Microsoft.CSharp;
+using System.CodeDom;
+using System.Text;
+using System.IO;
+using System.CodeDom.Compiler;
 
 namespace DiscoverPublicMethod
 {
@@ -24,11 +29,11 @@ namespace DiscoverPublicMethod
                     {
                         if(i < method.GetParameters().Count())
                         {
-                            parameterName = parameterName + parameter.ParameterType + ", ";
+                            parameterName = parameterName + GetPrimitiveNameOfParameterType(parameter.ParameterType) + ", ";
                         }
                         else
                         {
-                            parameterName = parameterName + parameter.ParameterType;
+                            parameterName = parameterName + GetPrimitiveNameOfParameterType(parameter.ParameterType);
                         }
                         i++;
                     }
@@ -39,5 +44,21 @@ namespace DiscoverPublicMethod
             }
             return typeNameList;
         }
+        private string GetPrimitiveNameOfParameterType(Type parameterType)
+        {
+            string primitiveName;
+            var compiler = new CSharpCodeProvider();
+            if ((Nullable.GetUnderlyingType(parameterType) != null))
+            {
+                primitiveName = compiler.GetTypeOutput(new System.CodeDom.CodeTypeReference(Nullable.GetUnderlyingType(parameterType))) + "?";
+            }
+            else
+            {
+                primitiveName = compiler.GetTypeOutput(new System.CodeDom.CodeTypeReference(parameterType));
+            }
+            return primitiveName;
+        }
     }
 }
+
+

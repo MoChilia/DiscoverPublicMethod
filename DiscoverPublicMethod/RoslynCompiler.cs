@@ -30,10 +30,11 @@ namespace DiscoverPublicMethod
             List<Tuple<string, string,string>> methodNames = assembly.load(assemblyName);
             foreach (var method in methodNames)
             {
+                var methodFullName = method.Item1 + "."+ method.Item2 + method.Item3;
                 var externalFunctions = await SymbolFinder.FindDeclarationsAsync(project, method.Item2, true);
                 foreach (var externalFunction in externalFunctions)
                 {
-                    if (externalFunction.ContainingType != null && method.Item1.Equals(externalFunction.ContainingType.ToString()))
+                    if (methodFullName.Equals(externalFunction.ToString()))
                     {
                         List<string> callChain = new List<string>();
                         await FindMethodUp(externalFunction, callChain);

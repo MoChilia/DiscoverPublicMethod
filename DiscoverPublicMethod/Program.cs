@@ -15,6 +15,10 @@ namespace DiscoverPublicMethod
             var solutionPath = @"D:\AzPwsh\azure-powershell\src\KeyVault\KeyVault.sln";
             var projectName = "KeyVault";
             string assemblyName = "Microsoft.Azure.Management.KeyVault";
+            
+            //var assembly = new Asm();
+            //List<Tuple<string, string, string>> methodNames = assembly.load(assemblyName);
+            
             await roslynCompiler.GetChainBottomUp(solutionPath, projectName, assemblyName);
             roslynCompiler.OutputCallChains();
 

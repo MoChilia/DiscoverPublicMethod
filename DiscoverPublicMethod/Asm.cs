@@ -48,7 +48,8 @@ namespace DiscoverPublicMethod
         {
             string primitiveName;
             var compiler = new CSharpCodeProvider();
-            if ((Nullable.GetUnderlyingType(parameterType) != null))
+            // Nullable needs special treatment to turn System.Nullable`1[System.Int32] into int?
+            if (Nullable.GetUnderlyingType(parameterType) != null)
             {
                 primitiveName = compiler.GetTypeOutput(new System.CodeDom.CodeTypeReference(Nullable.GetUnderlyingType(parameterType))) + "?";
             }

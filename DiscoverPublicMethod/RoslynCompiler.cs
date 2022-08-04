@@ -55,6 +55,7 @@ namespace DiscoverPublicMethod
                     var filePath = $"[FileName (line#){function.Locations.FirstOrDefault().SourceTree.FilePath} ({line})]";
                     callChain.Add(function.ToString() + filePath);
                     List<string> callChainCopy = new List<string>();
+                    callChain.Reverse();
                     callChain.ForEach(i => callChainCopy.Add(i));
                     callChains.Add(callChainCopy);
                 }
@@ -63,6 +64,8 @@ namespace DiscoverPublicMethod
             {
                 var line = location.Location.GetLineSpan().StartLinePosition.Line + 1;
                 var filePath = $"[FileName (line#){location.Location.SourceTree.FilePath} ({line})]";
+                List<string> callChainMemory = new List<string>();
+                callChain.ForEach(i => callChainMemory.Add(i));
                 callChain.Add(function.ToString() + filePath);
                 var document = location.Document;
                 var root = await document.GetSyntaxRootAsync();
@@ -70,19 +73,20 @@ namespace DiscoverPublicMethod
                 var node = root.FindNode(location.Location.SourceSpan);
                 var owner = GetOwner(root, node);
                 var nextSymbol = model.GetDeclaredSymbol(owner);
-
-                List<string> callChainMemory = new List<string>();
-                callChain.ForEach(i => callChainMemory.Add(i));
-
+                
                 await FindMethodUp(nextSymbol, callChain);
 
                 callChain.Clear();
                 callChainMemory.ForEach(i => callChain.Add(i));
             }
         }
-        private static MethodDeclarationSyntax GetOwner(SyntaxNode root, SyntaxNode node)
+        private static CSharpSyntaxNode GetOwner(SyntaxNode root, SyntaxNode node)
         {
-            var candidates = root.DescendantNodes().OfType<MethodDeclarationSyntax>();
+            IEnumerable<CSharpSyntaxNode> candidates = root.DescendantNodes().OfType<MethodDeclarationSyntax>();
+            if (!candidates.Any())
+            {
+                candidates = root.DescendantNodes().OfType<MemberDeclarationSyntax>();
+            }
             var result = candidates.First(candidate => candidate.DescendantNodesAndSelf().Contains(node));
             return result;
         }
@@ -170,13 +174,13 @@ namespace DiscoverPublicMethod
             int i = 0;
             foreach (var item in callChain)
             {
-                if(i != callChain.Count - 1)
+                if(i == 0)
                 {
-                    Console.Write(item + "->");
+                    Console.WriteLine(item);
                 }
                 else
                 {
-                    Console.Write(item);
+                    Console.WriteLine("->" + item);
                 }
                 i++;
             }

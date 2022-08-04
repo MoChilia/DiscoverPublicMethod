@@ -13,7 +13,6 @@ namespace DiscoverPublicMethod
 {
     public class RoslynCompiler
     {
-        public static HashSet<SyntaxNode> visited = new HashSet<SyntaxNode>();
         public static List<List<string>> callChains = new List<List<string>>();
         public static Compilation compilation;
         public static IEnumerable<Project> projects;
@@ -30,7 +29,7 @@ namespace DiscoverPublicMethod
             List<Tuple<string, string,string>> methodNames = assembly.load(assemblyName);
             foreach (var method in methodNames)
             {
-                var methodFullName = method.Item1 + "."+ method.Item2 + method.Item3;
+                var methodFullName = method.Item1 + "." + method.Item2 + method.Item3;
                 var externalFunctions = await SymbolFinder.FindDeclarationsAsync(project, method.Item2, true);
                 foreach (var externalFunction in externalFunctions)
                 {
@@ -61,7 +60,7 @@ namespace DiscoverPublicMethod
                 }
             }
             foreach (var location in referenced.Locations)
-            {
+            {   
                 var line = location.Location.GetLineSpan().StartLinePosition.Line + 1;
                 var filePath = $"[FileName (line#){location.Location.SourceTree.FilePath} ({line})]";
                 List<string> callChainMemory = new List<string>();
@@ -70,24 +69,25 @@ namespace DiscoverPublicMethod
                 var document = location.Document;
                 var root = await document.GetSyntaxRootAsync();
                 var model = await document.GetSemanticModelAsync();
-                var node = root.FindNode(location.Location.SourceSpan);
-                var owner = GetOwner(root, node);
-                var nextSymbol = model.GetDeclaredSymbol(owner);
-                
-                await FindMethodUp(nextSymbol, callChain);
-
+                var referencedNode = root.FindNode(location.Location.SourceSpan);
+                var parentDeclaration = GetParentDeclaration(root, referencedNode);
+                var nextSymbol = model.GetDeclaredSymbol(parentDeclaration);
+                if (!SymbolEqualityComparer.Default.Equals(nextSymbol, function))
+                {
+                    await FindMethodUp(nextSymbol, callChain);
+                }
                 callChain.Clear();
                 callChainMemory.ForEach(i => callChain.Add(i));
             }
         }
-        private static CSharpSyntaxNode GetOwner(SyntaxNode root, SyntaxNode node)
+        private static CSharpSyntaxNode GetParentDeclaration(SyntaxNode root, SyntaxNode referencedNode)
         {
             IEnumerable<CSharpSyntaxNode> candidates = root.DescendantNodes().OfType<MethodDeclarationSyntax>();
             if (!candidates.Any())
             {
                 candidates = root.DescendantNodes().OfType<MemberDeclarationSyntax>();
             }
-            var result = candidates.First(candidate => candidate.DescendantNodesAndSelf().Contains(node));
+            var result = candidates.First(candidate => candidate.DescendantNodesAndSelf().Contains(referencedNode));
             return result;
         }
 
@@ -114,22 +114,9 @@ namespace DiscoverPublicMethod
         }
         public async Task FindMethodDown(SemanticModel model, MethodDeclarationSyntax method, List<string> callChain)
         {
-            if (method == null || model == null|| visited.Contains(method))
-            {
-                return;
-            }
-            visited.Add(method);
-            var loc = method.GetLocation();
-            var line = loc.GetLineSpan().StartLinePosition.Line + 1;
-            var filePath = $"[FileName (line#){loc.SourceTree.FilePath} ({line})]";
-            callChain.Add(method.Identifier.Text + filePath);
             var Invocations = method.DescendantNodes().OfType<InvocationExpressionSyntax>();
             foreach (InvocationExpressionSyntax invoc in Invocations)
             {
-                if (visited.Contains(invoc))
-                {
-                    continue;
-                }
                 var invokedSymbol = model.GetSymbolInfo(invoc).Symbol;
                 if (invokedSymbol != null)
                 {
@@ -137,13 +124,13 @@ namespace DiscoverPublicMethod
                     if (invokedSymbol.DeclaringSyntaxReferences.IsEmpty)
                     {
                         string symbolNameSpace = invokedSymbol.ContainingNamespace.ToString();
-                        if (symbolNameSpace.Contains("Microsoft.Azure.Management"))
+                        if (symbolNameSpace.Contains("Microsoft.Azure.Management.KeyVault"))
                         {
                             List<string> callChainCopy = new List<string>();
                             callChain.ForEach(i => callChainCopy.Add(i));
-                            loc = invoc.GetLocation();
-                            line = loc.GetLineSpan().StartLinePosition.Line + 1;
-                            filePath = $"[FileName (line#){loc.SourceTree.FilePath} ({line})]";
+                            var loc = invoc.GetLocation();
+                            var line = loc.GetLineSpan().StartLinePosition.Line + 1;
+                            var filePath = $"[FileName (line#){loc.SourceTree.FilePath} ({line})]";
                             var dllPath = $"[{invokedSymbol.Locations.FirstOrDefault().ToString()}]";
                             callChainCopy.Add(invokedSymbol.ToString()+ filePath + dllPath);
                             callChains.Add(callChainCopy);
@@ -155,12 +142,16 @@ namespace DiscoverPublicMethod
                         var nextMethod = (MethodDeclarationSyntax) await reference.GetSyntaxAsync();
                         var tree = reference.SyntaxTree;
                         var nextModel = compilation.GetSemanticModel(tree);
-
                         List<string> callChainMemory = new List<string>();
                         callChain.ForEach(i => callChainMemory.Add(i));
-
-                        await FindMethodDown(nextModel, nextMethod, callChain);
-
+                        var loc = method.GetLocation();
+                        var line = loc.GetLineSpan().StartLinePosition.Line + 1;
+                        var filePath = $"[FileName (line#){loc.SourceTree.FilePath} ({line})]";
+                        callChain.Add(method.Identifier.Text + filePath);
+                        if (!method.Equals(nextMethod))
+                        {
+                            await FindMethodDown(nextModel, nextMethod, callChain);
+                        }
                         callChain.Clear();
                         callChainMemory.ForEach(i => callChain.Add(i));
                     }

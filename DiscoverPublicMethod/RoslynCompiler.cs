@@ -21,21 +21,19 @@ namespace DiscoverPublicMethod
         public static IEnumerable<Project> projects;
         public static Solution solution;
 
-        public async Task GetChainBottomUp(string solutionPath, string projectName, string assemblyName)
+        public async Task GetChainBottomUp(string solutionPath, string projectName)
         {
             var workspace = MSBuildWorkspace.Create();
             workspace.LoadMetadataForReferencedProjects = true;
             solution = await workspace.OpenSolutionAsync(solutionPath);
             var project = solution.Projects.SingleOrDefault(p => p.Name == projectName);
             compilation = await project.GetCompilationAsync();
-            Console.WriteLine("Project Name is: " + project.Name);
+            compilationDiagnostics(compilation);
             var assembly = new Asm();
-            List<Tuple<string, string, string>> methodNames = assembly.load(assemblyName);
-            var myClass = await SymbolFinder.FindDeclarationsAsync(project, "IAvailabilitySetsOperations", true);
-            if (myClass.Any())
-            {
-                Console.WriteLine("myClass: " + myClass.FirstOrDefault().ToString());
-            }
+            string assemblyName = $"Microsoft.Azure.Management.{projectName}";
+            Console.WriteLine("Project Name is: " + project.Name);
+            Console.WriteLine("Assembly Name is: " + assemblyName);
+            List<Tuple<string, string, string, string, string>> methodNames = assembly.loadMethods(projectName);
             foreach (var method in methodNames)
             {
                 var methodFullName = method.Item1 + "." + method.Item2 + method.Item3;
@@ -46,13 +44,13 @@ namespace DiscoverPublicMethod
                     {
                         List<string> callChain = new List<string>();
                         List<SyntaxNode> callChainNode = new List<SyntaxNode>();
-                        await FindMethodUp(externalFunction, callChain, callChainNode);
+                        await FindMethodUp(externalFunction, callChain, callChainNode, method);
                     }
                 }
             }
         }
 
-        public async Task FindMethodUp(ISymbol function, List<string> callChain, List<SyntaxNode> callChainNode)
+        public async Task FindMethodUp(ISymbol function, List<string> callChain, List<SyntaxNode> callChainNode, Tuple<string, string, string, string, string> method)
         {
             var callers = await SymbolFinder.FindReferencesAsync(function, solution);
             var referenced = callers.FirstOrDefault();
@@ -62,7 +60,7 @@ namespace DiscoverPublicMethod
                 {
                     var line = function.Locations.FirstOrDefault().GetLineSpan().StartLinePosition.Line + 1;
                     var filePath = $"[FileName (line#){function.Locations.FirstOrDefault().SourceTree.FilePath} ({line})]";
-                    callChain.Add(function.ToString() + filePath);
+                    callChain.Add($"{function.ToString()}{filePath}+{method.Item5}");
                     List<string> callChainCopy = new List<string>();
                     callChain.Reverse();
                     callChain.ForEach(i => callChainCopy.Add(i));
@@ -77,8 +75,8 @@ namespace DiscoverPublicMethod
                 callChain.ForEach(i => callChainMemory.Add(i));
                 List<SyntaxNode> callChainNodeMemory = new List<SyntaxNode>();
                 callChainNode.ForEach(i => callChainNodeMemory.Add(i));
-                Console.WriteLine(function.ToString() + filePath);
-                callChain.Add(function.ToString() + filePath);
+                //Console.WriteLine(function.ToString() + filePath);
+                callChain.Add($"{function.ToString()}{filePath}[Api version: {method.Item5}]");
                 var document = location.Document;
                 var root = await document.GetSyntaxRootAsync();
                 var model = await document.GetSemanticModelAsync();
@@ -87,7 +85,7 @@ namespace DiscoverPublicMethod
                 var nextSymbol = model.GetDeclaredSymbol(parentDeclaration);
                 if (!SymbolEqualityComparer.Default.Equals(nextSymbol, function))
                 {
-                    await FindMethodUp(nextSymbol, callChain, callChainNode);
+                    await FindMethodUp(nextSymbol, callChain, callChainNode, method);
                 }
                 callChain.Clear();
                 callChainMemory.ForEach(i => callChain.Add(i));
@@ -114,12 +112,7 @@ namespace DiscoverPublicMethod
             var solution = await workspace.OpenSolutionAsync(solutionPath);
             var project = solution.Projects.SingleOrDefault(p => p.Name == projectName);
             compilation = await project.GetCompilationAsync();
-            if (compilation.GetDiagnostics().Any())
-            {
-                var errors = compilation.GetDiagnostics().ToList();
-                foreach (var diag in errors)
-                    Console.WriteLine(diag);
-            }
+            compilationDiagnostics(compilation);
             Console.WriteLine("Project Name is: " + project.Name);
             foreach(var document in project.Documents) 
             {
@@ -153,7 +146,7 @@ namespace DiscoverPublicMethod
                     {
                         string symbolNameSpace = invokedSymbol.ContainingNamespace.ToString();
                         //if (symbolNameSpace.Contains("Microsoft.Azure.Management"))
-                        //if(symbolNameSpace.Equals(assemblyName))
+                        if(symbolNameSpace.Equals(assemblyName))
                         {
                             List<string> callChainCopy = new List<string>();
                             callChain.ForEach(i => callChainCopy.Add(i));
@@ -194,6 +187,17 @@ namespace DiscoverPublicMethod
             }
             return;
         }
+
+        private void compilationDiagnostics(Compilation compilation)
+        {
+            if (compilation.GetDiagnostics().Any())
+            {
+                var errors = compilation.GetDiagnostics().ToList();
+                foreach (var diag in errors)
+                    Console.WriteLine(diag);
+            }
+        }
+
         public void OutputCallChain(List<string> callChain, bool inConsole = true, bool inFile = false, string filePath = null)
         {
             if (inConsole)

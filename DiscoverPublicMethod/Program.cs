@@ -11,10 +11,8 @@ namespace DiscoverPublicMethod
     {
         static async Task Main(string[] args)
         {
-            var projectName = "Accounts";
-            //var solutionPath = $"D:\\AzPwsh\\azure-powershell\\src\\{projectName}\\{projectName}.sln";
-            //var projectName = "Az.App";
-            var solutionPath = $"D:\\AzPwsh\\azure-powershell\\src\\Compute\\Compute.sln";
+            var projectName = "Compute";
+            var solutionPath = $"D:\\AzPwsh\\azure-powershell\\src\\{projectName}\\{projectName}.sln";
             string assemblyName = $"Microsoft.Azure.Management.{projectName}";
             //{
             //    var roslynCompiler = new RoslynCompiler();
@@ -30,7 +28,7 @@ namespace DiscoverPublicMethod
                 if (File.Exists(filePath)) { File.Delete(filePath); }
                 File.Create(filePath);
                 await roslynCompiler.GetChainTopDown(solutionPath, projectName, assemblyName);
-                roslynCompiler.OutputCallChains(true, true, filePath);
+                roslynCompiler.OutputCallChains(true);
             }
         }
     }

@@ -11,25 +11,27 @@ namespace DiscoverPublicMethod
     {
         static async Task Main(string[] args)
         {
-            var solutionPath = @"D:\AzPwsh\azure-powershell\src\Compute\Compute.sln";
-            var projectName = "Compute";
-            string assemblyName = "Microsoft.Azure.Management.Compute";
-            {
-                var roslynCompiler = new RoslynCompiler();
-                string filePath = $"D:\\AzPwsh\\DiscoverPublicMethod\\DiscoverPublicMethod\\{projectName}-{assemblyName}-BottomUp.txt";
-                if (File.Exists(filePath)) { File.Delete(filePath); }
-                File.Create(filePath);
-                await roslynCompiler.GetChainBottomUp(solutionPath, projectName, assemblyName);
-                roslynCompiler.OutputCallChains(true, true, filePath);
-            }
+            var projectName = "Accounts";
+            //var solutionPath = $"D:\\AzPwsh\\azure-powershell\\src\\{projectName}\\{projectName}.sln";
+            //var projectName = "Az.App";
+            var solutionPath = $"D:\\AzPwsh\\azure-powershell\\src\\Compute\\Compute.sln";
+            string assemblyName = $"Microsoft.Azure.Management.{projectName}";
             //{
             //    var roslynCompiler = new RoslynCompiler();
-            //    string filePath = $"D:\\AzPwsh\\DiscoverPublicMethod\\DiscoverPublicMethod\\{projectName}-{assemblyName}-TopDown.txt";
+            //    string filePath = $"D:\\AzPwsh\\DiscoverPublicMethod\\DiscoverPublicMethod\\CallChainCache\\{projectName}-{assemblyName}-BottomUp.txt";
             //    if (File.Exists(filePath)) { File.Delete(filePath); }
             //    File.Create(filePath);
-            //    await roslynCompiler.GetChainTopDown(solutionPath, projectName, assemblyName);
+            //    await roslynCompiler.GetChainBottomUp(solutionPath, projectName, assemblyName);
             //    roslynCompiler.OutputCallChains(true, true, filePath);
             //}
+            {
+                var roslynCompiler = new RoslynCompiler();
+                string filePath = $"D:\\AzPwsh\\DiscoverPublicMethod\\DiscoverPublicMethod\\CallChainCache\\{projectName}-{assemblyName}-TopDown.txt";
+                if (File.Exists(filePath)) { File.Delete(filePath); }
+                File.Create(filePath);
+                await roslynCompiler.GetChainTopDown(solutionPath, projectName, assemblyName);
+                roslynCompiler.OutputCallChains(true, true, filePath);
+            }
         }
     }
 }

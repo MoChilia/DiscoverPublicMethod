@@ -1,14 +1,8 @@
 ﻿using System;
 using System.Reflection;
-using System.Diagnostics;
 using System.Linq;
 using System.Collections.Generic;
-using System.Windows.Forms;
 using Microsoft.CSharp;
-using System.CodeDom;
-using System.Text;
-using System.IO;
-using System.CodeDom.Compiler;
 
 namespace DiscoverPublicMethod
 {
@@ -50,9 +44,6 @@ namespace DiscoverPublicMethod
             }
             else
             {
-                if (typeName.StartsWith("I")){
-                    typeName = typeName.Substring(1);
-                }
                 if (typeName.EndsWith("Extensions"))
                 {
                     typeName = typeName.Substring(0, typeName.Length - 10);
@@ -60,8 +51,16 @@ namespace DiscoverPublicMethod
                 source = ApiInfos.Where(i => i.Item2 == typeName).FirstOrDefault();
                 if (source == null && typeName.EndsWith("Operations"))
                 {
-                    typeName = typeName.Substring(0, typeName.Length - 10);
-                    source = ApiInfos.Where(i => i.Item2 == typeName).FirstOrDefault();
+                    if (!typeName.Equals("IOperations"))
+                    {
+                        typeName = typeName.Substring(0, typeName.Length - 10);
+                        source = ApiInfos.Where(i => i.Item2 == typeName).FirstOrDefault();
+                    }
+                    if (source == null && typeName.StartsWith("I"))
+                    {
+                         typeName = typeName.Substring(1);
+                        source = ApiInfos.Where(i => i.Item2 == typeName).FirstOrDefault();
+                    }
                 }
             }
             if (source != null)

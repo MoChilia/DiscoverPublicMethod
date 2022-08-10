@@ -14,12 +14,10 @@
 		<PackageReference Include="Microsoft.CodeAnalysis.CSharp.Workspaces" Version="$(RoslynVersion)" />
 		<PackageReference Include="Microsoft.CodeAnalysis.Workspaces.Common" Version="$(RoslynVersion)" />
 		<PackageReference Include="Microsoft.CodeAnalysis.Workspaces.MSBuild" Version="$(RoslynVersion)" />
-		<PackageReference Include="Microsoft.Build" Version="$(MicrosoftBuildVersion)" />
-		<PackageReference Include="Microsoft.Build.Framework" Version="$(MicrosoftBuildVersion)" />
-		<PackageReference Include="Microsoft.Build.Tasks.Core" Version="$(MicrosoftBuildVersion)" />
-		<PackageReference Include="Microsoft.Build.Utilities.Core" Version="$(MicrosoftBuildVersion)"/>
+		<PackageReference Include="Microsoft.Build.Locator" Version="1.4.1" />
 		<PackageReference Include="Microsoft.Azure.Management.KeyVault" Version="4.0.0-preview.1" />
 		<PackageReference Include="Microsoft.Azure.KeyVault" Version="3.0.1" />
 		<PackageReference Include="Microsoft.Azure.Management.Compute" Version="56.0.0" />
+		<PackageReference Include="Microsoft.Azure.Management.ContainerService" Version="1.2.0" />
 	</ItemGroup>
 </Project>

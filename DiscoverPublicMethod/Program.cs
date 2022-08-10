@@ -11,22 +11,18 @@ namespace DiscoverPublicMethod
     {
         static async Task Main(string[] args)
         {
-            var projectName = "KeyVault";
+            var projectName = "Compute";
             var solutionPath = $"D:\\AzPwsh\\azure-powershell\\src\\{projectName}\\{projectName}.sln";
             string assemblyName = $"Microsoft.Azure.Management.{projectName}";
             {
                 var roslynCompiler = new RoslynCompiler();
-                string filePath = $"D:\\AzPwsh\\DiscoverPublicMethod\\DiscoverPublicMethod\\CallChainCache\\{projectName}-{assemblyName}-BottomUp.txt";
-                if (File.Exists(filePath)) { File.Delete(filePath); }
-                File.Create(filePath);
                 await roslynCompiler.GetChainBottomUp(solutionPath, projectName);
-                roslynCompiler.OutputCallChains(true, true, filePath);
+                string filePath = $"D:\\AzPwsh\\DiscoverPublicMethod\\DiscoverPublicMethod\\CallChainCache\\{projectName}-{assemblyName}-BottomUp.txt";
+                roslynCompiler.OutputCallChains(true, false, filePath);
             }
             //{
             //    var roslynCompiler = new RoslynCompiler();
             //    string filePath = $"D:\\AzPwsh\\DiscoverPublicMethod\\DiscoverPublicMethod\\CallChainCache\\{projectName}-{assemblyName}-TopDown.txt";
-            //    if (File.Exists(filePath)) { File.Delete(filePath); }
-            //    File.Create(filePath);
             //    await roslynCompiler.GetChainTopDown(solutionPath, projectName, assemblyName);
             //    roslynCompiler.OutputCallChains(true);
             //}

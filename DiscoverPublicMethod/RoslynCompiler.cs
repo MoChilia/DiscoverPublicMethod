@@ -8,7 +8,8 @@ using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.FindSymbols;
 using Microsoft.CodeAnalysis.MSBuild;
 using System.Threading.Tasks;
-using System.Threading;
+using System.Collections.Immutable;
+using Microsoft.Build.Locator;
 
 
 namespace DiscoverPublicMethod
@@ -23,12 +24,12 @@ namespace DiscoverPublicMethod
 
         public async Task GetChainBottomUp(string solutionPath, string projectName)
         {
+            RegisterInstance();
             var workspace = MSBuildWorkspace.Create();
             workspace.LoadMetadataForReferencedProjects = true;
             solution = await workspace.OpenSolutionAsync(solutionPath);
             var project = solution.Projects.SingleOrDefault(p => p.Name == projectName);
             compilation = await project.GetCompilationAsync();
-            compilationDiagnostics(compilation);
             var assembly = new Asm();
             string assemblyName = $"Microsoft.Azure.Management.{projectName}";
             Console.WriteLine("Project Name is: " + project.Name);
@@ -42,6 +43,7 @@ namespace DiscoverPublicMethod
                 {
                     if (methodFullName.Equals(externalFunction.ToString()))
                     {
+                        //Console.WriteLine(externalFunction.ToString());
                         List<string> callChain = new List<string>();
                         List<SyntaxNode> callChainNode = new List<SyntaxNode>();
                         await FindMethodUp(externalFunction, callChain, callChainNode, method);
@@ -54,18 +56,15 @@ namespace DiscoverPublicMethod
         {
             var callers = await SymbolFinder.FindReferencesAsync(function, solution);
             var referenced = callers.FirstOrDefault();
-            if (referenced.Locations.Count() == 0)
+            if (referenced.Locations.Count() == 0 && callChain.Any())
             {
-                if (callChain.Any())
-                {
-                    var line = function.Locations.FirstOrDefault().GetLineSpan().StartLinePosition.Line + 1;
-                    var filePath = $"[FileName (line#){function.Locations.FirstOrDefault().SourceTree.FilePath} ({line})]";
-                    callChain.Add($"{function.ToString()}{filePath}+{method.Item5}");
-                    List<string> callChainCopy = new List<string>();
-                    callChain.Reverse();
-                    callChain.ForEach(i => callChainCopy.Add(i));
-                    callChains.Add(callChainCopy);
-                }
+                var line = function.Locations.FirstOrDefault().GetLineSpan().StartLinePosition.Line + 1;
+                var filePath = $"[FileName (line#){function.Locations.FirstOrDefault().SourceTree.FilePath} ({line})]";
+                callChain.Add($"{function.ToString()}{filePath}");
+                List<string> callChainCopy = new List<string>();
+                callChain.Reverse();
+                callChain.ForEach(i => callChainCopy.Add(i));
+                callChains.Add(callChainCopy);
             }
             foreach (var location in referenced.Locations)
             {
@@ -75,13 +74,21 @@ namespace DiscoverPublicMethod
                 callChain.ForEach(i => callChainMemory.Add(i));
                 List<SyntaxNode> callChainNodeMemory = new List<SyntaxNode>();
                 callChainNode.ForEach(i => callChainNodeMemory.Add(i));
-                //Console.WriteLine(function.ToString() + filePath);
-                callChain.Add($"{function.ToString()}{filePath}[Api version: {method.Item5}]");
+                if (!callChain.Any())
+                {
+                    callChain.Add($"{function.ToString()}{filePath}[Api version: {method.Item5}]");
+                }
+                else
+                {
+                    callChain.Add($"{function.ToString()}{filePath}");
+                }
                 var document = location.Document;
                 var root = await document.GetSyntaxRootAsync();
                 var model = await document.GetSemanticModelAsync();
                 var referencedNode = root.FindNode(location.Location.SourceSpan);
                 var parentDeclaration = GetParentDeclaration(root, referencedNode);
+                if (parentDeclaration == null)
+                    continue;
                 var nextSymbol = model.GetDeclaredSymbol(parentDeclaration);
                 if (!SymbolEqualityComparer.Default.Equals(nextSymbol, function))
                 {
@@ -100,6 +107,11 @@ namespace DiscoverPublicMethod
             {
                 candidates = root.DescendantNodes().OfType<MemberDeclarationSyntax>();
             }
+            var results = candidates.Where(candidate => candidate.DescendantNodesAndSelf().Contains(referencedNode));
+            if (!results.Any())
+            {
+                return null;
+            }
             var result = candidates.First(candidate => candidate.DescendantNodesAndSelf().Contains(referencedNode));
             return result;
         }
@@ -114,7 +126,7 @@ namespace DiscoverPublicMethod
             compilation = await project.GetCompilationAsync();
             compilationDiagnostics(compilation);
             Console.WriteLine("Project Name is: " + project.Name);
-            foreach(var document in project.Documents) 
+            foreach (var document in project.Documents)
             {
                 var model = await document.GetSemanticModelAsync();
                 var root = await document.GetSyntaxRootAsync();
@@ -125,7 +137,6 @@ namespace DiscoverPublicMethod
                     List<SyntaxNode> callChainNode = new List<SyntaxNode>();
                     await FindMethodDown(model, method, callChain, assemblyName, callChainNode);
                 }
-                
             }
         }
         public async Task FindMethodDown(SemanticModel model, MethodDeclarationSyntax method, List<string> callChain, string assemblyName, List<SyntaxNode> callChainNode)
@@ -146,7 +157,7 @@ namespace DiscoverPublicMethod
                     {
                         string symbolNameSpace = invokedSymbol.ContainingNamespace.ToString();
                         //if (symbolNameSpace.Contains("Microsoft.Azure.Management"))
-                        if(symbolNameSpace.Equals(assemblyName))
+                        if (symbolNameSpace.Equals(assemblyName))
                         {
                             List<string> callChainCopy = new List<string>();
                             callChain.ForEach(i => callChainCopy.Add(i));
@@ -161,8 +172,8 @@ namespace DiscoverPublicMethod
                     }
                     foreach (var reference in invokedSymbol.DeclaringSyntaxReferences)
                     {
-                        var nextNode =  await reference.GetSyntaxAsync();
-                        if(nextNode.IsKind(SyntaxKind.DelegateDeclaration))
+                        var nextNode = await reference.GetSyntaxAsync();
+                        if (nextNode.IsKind(SyntaxKind.DelegateDeclaration))
                         {
                             continue;
                         }
@@ -195,6 +206,14 @@ namespace DiscoverPublicMethod
                 var errors = compilation.GetDiagnostics().ToList();
                 foreach (var diag in errors)
                     Console.WriteLine(diag);
+            }
+        }
+        private void workspaceDiagnostics(MSBuildWorkspace workspace)
+        {
+            ImmutableList<WorkspaceDiagnostic> diagnostics = workspace.Diagnostics;
+            foreach (var diagnostic in diagnostics)
+            {
+                Console.WriteLine(diagnostic.Message);
             }
         }
 
@@ -243,9 +262,55 @@ namespace DiscoverPublicMethod
         }
         public void OutputCallChains(bool inConsole = true, bool inFile = false, string filePath = null)
         {
-            foreach(var callChain in callChains)
+            if (inFile && filePath != null)
+            {
+                if (File.Exists(filePath)) { File.Delete(filePath); }
+                File.Create(filePath).Close();
+            }
+            foreach (var callChain in callChains)
             {
                 OutputCallChain(callChain, inConsole, inFile, filePath);
+            }
+        }
+
+        private void RegisterInstance()
+        {
+            var visualStudioInstances = MSBuildLocator.QueryVisualStudioInstances().ToArray();
+            var instance = visualStudioInstances.Length == 1
+                // If there is only one instance of MSBuild on this machine, set that as the one to use.
+                ? visualStudioInstances[0]
+                // Handle selecting the version of MSBuild you want to use.
+                : SelectVisualStudioInstance(visualStudioInstances);
+
+            Console.WriteLine($"Using MSBuild at '{instance.MSBuildPath}' to load projects.");
+
+                // NOTE: Be sure to register an instance with the MSBuildLocator 
+                //       before calling MSBuildWorkspace.Create()
+                //       otherwise, MSBuildWorkspace won't MEF compose.
+                MSBuildLocator.RegisterInstance(instance);
+         }
+
+        private static VisualStudioInstance SelectVisualStudioInstance(VisualStudioInstance[] visualStudioInstances)
+        {
+            Console.WriteLine("Multiple installs of MSBuild detected please select one:");
+            for (int i = 0; i < visualStudioInstances.Length; i++)
+            {
+                Console.WriteLine($"Instance {i + 1}");
+                Console.WriteLine($"    Name: {visualStudioInstances[i].Name}");
+                Console.WriteLine($"    Version: {visualStudioInstances[i].Version}");
+                Console.WriteLine($"    MSBuild Path: {visualStudioInstances[i].MSBuildPath}");
+            }
+
+            while (true)
+            {
+                var userResponse = Console.ReadLine();
+                if (int.TryParse(userResponse, out int instanceNumber) &&
+                    instanceNumber > 0 &&
+                    instanceNumber <= visualStudioInstances.Length)
+                {
+                    return visualStudioInstances[instanceNumber - 1];
+                }
+                Console.WriteLine("Input not accepted, try again.");
             }
         }
     }

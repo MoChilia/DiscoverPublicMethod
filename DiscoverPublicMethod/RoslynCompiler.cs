@@ -16,10 +16,7 @@ namespace DiscoverPublicMethod
 {
     public class RoslynCompiler
     {
-        //public static List<List<ISymbol>> callChains = new List<List<ISymbol>>();
-        public static List<List<string>> callChains = new List<List<string>>();
-        public static Compilation compilation;
-        public static IEnumerable<Project> projects;
+        public static Dictionary<ISymbol, HashSet<myApiInfo>> methodsApiInfo = new Dictionary<ISymbol, HashSet<myApiInfo>>();
         public static Solution solution;
 
         public async Task GetChainBottomUp(string solutionPath, string projectName)
@@ -29,59 +26,56 @@ namespace DiscoverPublicMethod
             workspace.LoadMetadataForReferencedProjects = true;
             solution = await workspace.OpenSolutionAsync(solutionPath);
             var project = solution.Projects.SingleOrDefault(p => p.Name == projectName);
-            compilation = await project.GetCompilationAsync();
-            var assembly = new Asm();
-            string assemblyName = $"Microsoft.Azure.Management.{projectName}";
             Console.WriteLine("Project Name is: " + project.Name);
+            Compilation compilation = await project.GetCompilationAsync();
+            string assemblyName = $"Microsoft.Azure.Management.{projectName}";
             Console.WriteLine("Assembly Name is: " + assemblyName);
-            List<Tuple<string, string, string, string, string>> methodNames = assembly.loadMethods(projectName);
-            foreach (var method in methodNames)
+            var assembly = new Asm();
+            List<myMethodInfo> methodInfos = assembly.loadMethods(projectName);
+            foreach (var method in methodInfos)
             {
-                var methodFullName = method.Item1 + "." + method.Item2 + method.Item3;
-                var externalFunctions = await SymbolFinder.FindDeclarationsAsync(project, method.Item2, true);
+                var methodFullName = method.NameSpace + "." + method.Method + method.Parameters;
+                var externalFunctions = await SymbolFinder.FindDeclarationsAsync(project, method.Method, true);
                 foreach (var externalFunction in externalFunctions)
                 {
                     if (methodFullName.Equals(externalFunction.ToString()))
                     {
-                        //Console.WriteLine(externalFunction.ToString());
-                        List<string> callChain = new List<string>();
-                        List<SyntaxNode> callChainNode = new List<SyntaxNode>();
-                        await FindMethodUp(externalFunction, callChain, callChainNode, method);
+                        List<ISymbol> callChain = new List<ISymbol>();
+                        await FindMethodUp(externalFunction, callChain, method);
                     }
                 }
             }
         }
 
-        public async Task FindMethodUp(ISymbol function, List<string> callChain, List<SyntaxNode> callChainNode, Tuple<string, string, string, string, string> method)
+        public async Task FindMethodUp(ISymbol function, List<ISymbol> callChain, myMethodInfo method)
         {
             var callers = await SymbolFinder.FindReferencesAsync(function, solution);
             var referenced = callers.FirstOrDefault();
+            // Reach the destination of the call chain which is a method not called by any other methods
             if (referenced.Locations.Count() == 0 && callChain.Any())
             {
-                var line = function.Locations.FirstOrDefault().GetLineSpan().StartLinePosition.Line + 1;
-                var filePath = $"[FileName (line#){function.Locations.FirstOrDefault().SourceTree.FilePath} ({line})]";
-                callChain.Add($"{function.ToString()}{filePath}");
-                List<string> callChainCopy = new List<string>();
-                callChain.Reverse();
-                callChain.ForEach(i => callChainCopy.Add(i));
-                callChains.Add(callChainCopy);
-            }
-            foreach (var location in referenced.Locations)
-            {
-                var line = location.Location.GetLineSpan().StartLinePosition.Line + 1;
-                var filePath = $"[FileName (line#){location.Location.SourceTree.FilePath} ({line})]";
-                List<string> callChainMemory = new List<string>();
-                callChain.ForEach(i => callChainMemory.Add(i));
-                List<SyntaxNode> callChainNodeMemory = new List<SyntaxNode>();
-                callChainNode.ForEach(i => callChainNodeMemory.Add(i));
-                if (!callChain.Any())
+                if (!methodsApiInfo.ContainsKey(function))
                 {
-                    callChain.Add($"{function.ToString()}{filePath}[Api version: {method.Item5}]");
+                    HashSet<myApiInfo> apiInfoSet = new HashSet<myApiInfo>();
+                    apiInfoSet.Add(method.ApiInfo);
+                    methodsApiInfo.Add(function, apiInfoSet);
                 }
                 else
                 {
-                    callChain.Add($"{function.ToString()}{filePath}");
+                    HashSet<myApiInfo> apiInfoSet = methodsApiInfo[function];
+                    if (!apiInfoSet.Contains(method.ApiInfo))
+                    {
+                        apiInfoSet.Add(method.ApiInfo);
+                        methodsApiInfo[function] = apiInfoSet;
+                    }
                 }
+                return;
+            }
+            List<ISymbol> callChainMemory = new List<ISymbol>();
+            callChain.ForEach(i => callChainMemory.Add(i));
+            callChain.Add(function);
+            foreach (var location in referenced.Locations)
+            {
                 var document = location.Document;
                 var root = await document.GetSyntaxRootAsync();
                 var model = await document.GetSemanticModelAsync();
@@ -90,14 +84,12 @@ namespace DiscoverPublicMethod
                 if (parentDeclaration == null)
                     continue;
                 var nextSymbol = model.GetDeclaredSymbol(parentDeclaration);
-                if (!SymbolEqualityComparer.Default.Equals(nextSymbol, function))
+                if (!callChain.Contains(nextSymbol))
                 {
-                    await FindMethodUp(nextSymbol, callChain, callChainNode, method);
+                    await FindMethodUp(nextSymbol, callChain, method);
                 }
                 callChain.Clear();
                 callChainMemory.ForEach(i => callChain.Add(i));
-                callChainNode.Clear();
-                callChainNodeMemory.ForEach(i => callChainNode.Add(i));
             }
         }
         private static CSharpSyntaxNode GetParentDeclaration(SyntaxNode root, SyntaxNode referencedNode)
@@ -114,89 +106,6 @@ namespace DiscoverPublicMethod
             }
             var result = candidates.First(candidate => candidate.DescendantNodesAndSelf().Contains(referencedNode));
             return result;
-        }
-
-
-        public async Task GetChainTopDown(string solutionPath, string projectName, string assemblyName)
-        {
-            var workspace = MSBuildWorkspace.Create();
-            workspace.LoadMetadataForReferencedProjects = true;
-            var solution = await workspace.OpenSolutionAsync(solutionPath);
-            var project = solution.Projects.SingleOrDefault(p => p.Name == projectName);
-            compilation = await project.GetCompilationAsync();
-            compilationDiagnostics(compilation);
-            Console.WriteLine("Project Name is: " + project.Name);
-            foreach (var document in project.Documents)
-            {
-                var model = await document.GetSemanticModelAsync();
-                var root = await document.GetSyntaxRootAsync();
-                var methodDeclarations = root.DescendantNodes().OfType<MethodDeclarationSyntax>();
-                foreach (var method in methodDeclarations)
-                {
-                    List<string> callChain = new List<string>();
-                    List<SyntaxNode> callChainNode = new List<SyntaxNode>();
-                    await FindMethodDown(model, method, callChain, assemblyName, callChainNode);
-                }
-            }
-        }
-        public async Task FindMethodDown(SemanticModel model, MethodDeclarationSyntax method, List<string> callChain, string assemblyName, List<SyntaxNode> callChainNode)
-        {
-            var loc = method.GetLocation();
-            var line = loc.GetLineSpan().StartLinePosition.Line + 1;
-            var filePath = $"[FileName (line#){loc.SourceTree.FilePath} ({line})]";
-            callChainNode.Add(method);
-            callChain.Add(method.Identifier.Text + filePath);
-            var Invocations = method.DescendantNodes().OfType<InvocationExpressionSyntax>();
-            foreach (InvocationExpressionSyntax invoc in Invocations)
-            {
-                var invokedSymbol = model.GetSymbolInfo(invoc).Symbol;
-                if (invokedSymbol != null)
-                {
-                    //Invoke API from third-party library
-                    if (invokedSymbol.DeclaringSyntaxReferences.IsEmpty)
-                    {
-                        string symbolNameSpace = invokedSymbol.ContainingNamespace.ToString();
-                        //if (symbolNameSpace.Contains("Microsoft.Azure.Management"))
-                        if (symbolNameSpace.Equals(assemblyName))
-                        {
-                            List<string> callChainCopy = new List<string>();
-                            callChain.ForEach(i => callChainCopy.Add(i));
-                            loc = invoc.GetLocation();
-                            line = loc.GetLineSpan().StartLinePosition.Line + 1;
-                            filePath = $"[FileName (line#){loc.SourceTree.FilePath} ({line})]";
-                            var dllPath = $"[{invokedSymbol.Locations.FirstOrDefault().ToString()}]";
-                            callChainCopy.Add(invokedSymbol.ToString() + filePath + dllPath);
-                            callChains.Add(callChainCopy);
-                        }
-                        continue;
-                    }
-                    foreach (var reference in invokedSymbol.DeclaringSyntaxReferences)
-                    {
-                        var nextNode = await reference.GetSyntaxAsync();
-                        if (nextNode.IsKind(SyntaxKind.DelegateDeclaration))
-                        {
-                            continue;
-                        }
-                        var nextMethod = (MethodDeclarationSyntax)nextNode;
-                        var tree = reference.SyntaxTree;
-                        var nextModel = compilation.GetSemanticModel(tree);
-                        var nextSymbol = nextModel.GetSymbolInfo(nextMethod).Symbol;
-                        List<string> callChainMemory = new List<string>();
-                        callChain.ForEach(i => callChainMemory.Add(i));
-                        List<SyntaxNode> callChainNodeMemory = new List<SyntaxNode>();
-                        callChainNode.ForEach(i => callChainNodeMemory.Add(i));
-                        if (!callChainNode.Contains(nextMethod))
-                        {
-                            await FindMethodDown(nextModel, nextMethod, callChain, assemblyName, callChainNode);
-                        }
-                        callChain.Clear();
-                        callChainMemory.ForEach(i => callChain.Add(i));
-                        callChainNode.Clear();
-                        callChainNodeMemory.ForEach(i => callChainNode.Add(i));
-                    }
-                }
-            }
-            return;
         }
 
         private void compilationDiagnostics(Compilation compilation)
@@ -217,7 +126,40 @@ namespace DiscoverPublicMethod
             }
         }
 
-        public void OutputCallChain(List<string> callChain, bool inConsole = true, bool inFile = false, string filePath = null)
+        public void OutputMethodsApiInfo(bool inConsole = true, bool inFile = false, string filePath = null)
+        {
+            if (inFile && filePath != null)
+            {
+                if (File.Exists(filePath)) { File.Delete(filePath); }
+                File.Create(filePath).Close();
+            }
+            foreach (var methodApiInfo in methodsApiInfo)
+            {
+                var function = methodApiInfo.Key;
+                var apiInfoSet = methodApiInfo.Value;
+                if (inConsole)
+                {
+                    Console.WriteLine($"Function: {function} calls Api with");
+                    foreach (var apiInfo in apiInfoSet)
+                    {
+                        Console.WriteLine($"SourceType: {apiInfo.SourceType}; ApiVersion: {apiInfo.ApiVersion}");
+                    }
+                }
+                if (inFile && filePath != null)
+                {
+                    using (StreamWriter sw = new StreamWriter(filePath, append: true))
+                    {
+                        sw.WriteLine($"Function: {function} calls Api with");
+                        foreach (var apiInfo in apiInfoSet)
+                        {
+                            sw.WriteLine($"SourceType: {apiInfo.SourceType}; ApiVersion: {apiInfo.ApiVersion}");
+                        }
+                    }
+                }
+            }
+        }
+
+        public void OutputCallChain(List<ISymbol> callChain, bool inConsole = true, bool inFile = false, string filePath = null)
         {
             if (inConsole)
             {
@@ -227,11 +169,11 @@ namespace DiscoverPublicMethod
                 {
                     if (i == 0)
                     {
-                        Console.WriteLine(item);
+                        Console.WriteLine(item.ToString());
                     }
                     else
                     {
-                        Console.WriteLine("->" + item);
+                        Console.WriteLine("->" + item.ToString());
                     }
                     i++;
                 }
@@ -247,11 +189,11 @@ namespace DiscoverPublicMethod
                     {
                         if (i == 0)
                         {
-                            sw.WriteLine(item);
+                            sw.WriteLine(item.ToString());
                         }
                         else
                         {
-                            sw.WriteLine("->" + item);
+                            sw.WriteLine("->" + item.ToString());
                         }
                         i++;
                     }
@@ -259,18 +201,6 @@ namespace DiscoverPublicMethod
                 }
             }
 
-        }
-        public void OutputCallChains(bool inConsole = true, bool inFile = false, string filePath = null)
-        {
-            if (inFile && filePath != null)
-            {
-                if (File.Exists(filePath)) { File.Delete(filePath); }
-                File.Create(filePath).Close();
-            }
-            foreach (var callChain in callChains)
-            {
-                OutputCallChain(callChain, inConsole, inFile, filePath);
-            }
         }
 
         private void RegisterInstance()

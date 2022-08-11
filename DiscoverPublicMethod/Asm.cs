@@ -6,36 +6,62 @@ using Microsoft.CSharp;
 
 namespace DiscoverPublicMethod
 {
+    public struct myApiInfo
+    {
+        public myApiInfo(string sourceType, string apiVersion)
+        {
+            SourceType = sourceType;
+            ApiVersion = apiVersion;
+        }
+        public string SourceType { get; set; }
+        public string ApiVersion { get; set; }
+        public override string ToString() => $"({SourceType}, {ApiVersion})";
+    }
+    public struct myMethodInfo
+    {
+        public myMethodInfo(string nameSpace, string method, string parameters, string resourceType, string apiVersion)
+        {
+            NameSpace = nameSpace;
+            Method = method;
+            Parameters = parameters;
+            ApiInfo = new myApiInfo(resourceType, apiVersion);
+        }
+        public string NameSpace { get; set; }
+        public string Method { get; set; }
+        public string Parameters { get; set; }
+        public myApiInfo ApiInfo { get; set; }
+        public override string ToString() => $"{NameSpace}.{Method}.{Parameters}[SourceType: {ApiInfo.SourceType}, ApiVersion: {ApiInfo.ApiVersion}]";
+    }
+
     public class Asm
     {
-        public List<Tuple<string, string, string, string, string>> loadMethods(string projectName)
+        public List<myMethodInfo> loadMethods(string projectName)
         {
             // Use the projrect name to load the SDK assembly into the current application domain.
             string asmName = $"Microsoft.Azure.Management.{projectName}";
             var a = Assembly.Load(asmName);
             var SdkInfo = a.GetType($"{asmName}.SdkInfo");
             var ApiInfos = (IEnumerable<Tuple<string, string, string>>) SdkInfo.GetProperty($"ApiInfo_{projectName}ManagementClient").GetValue(null);
-            var typeNameList = new List<Tuple<string, string, string, string, string>>();
+            var typeNameList = new List<myMethodInfo>();
             foreach(var type in a.GetTypes())
             {
                 if (type.IsNestedPrivate || type.IsNotPublic || !type.Namespace.Equals(asmName))
                 {
                     continue;
                 }
-                var sourceVersionPair = GetSourceVersionPair(type.Name, ApiInfos);
+                var ApiInfo = GetApiInfo(type.Name, ApiInfos);
                 foreach (var method in type.GetMethods(BindingFlags.Public | BindingFlags.Static | BindingFlags.Instance))
                 {
                     string parameterName = GetParameterName(method);
-                    typeNameList.Add(new Tuple<string, string, string, string, string>(type.FullName, method.Name, parameterName, sourceVersionPair.Item1, sourceVersionPair.Item2));
-                    //Console.WriteLine($"{type.FullName} + { method.Name} + {parameterName} + {sourceVersionPair.Item1} + {sourceVersionPair.Item2}");
+                    typeNameList.Add(new myMethodInfo(type.FullName, method.Name, parameterName, ApiInfo.SourceType, ApiInfo.ApiVersion));
                 }
             }
             return typeNameList;
         }
 
-        private Tuple<string, string> GetSourceVersionPair(string typeName, IEnumerable<Tuple<string, string, string>> ApiInfos)
+        private myApiInfo GetApiInfo(string typeName, IEnumerable<Tuple<string, string, string>> ApiInfos)
         {
-            string sourceName = "null";
+            string sourceType = "null";
             string apiVersion = "null";
             Tuple<string, string, string> source;
             if (typeName.Contains("ManagementClient"))
@@ -65,10 +91,10 @@ namespace DiscoverPublicMethod
             }
             if (source != null)
             {
-                sourceName = source.Item1;
+                sourceType = source.Item1 + "." + source.Item2;
                 apiVersion = source.Item3;
             }
-            Tuple<string, string> sourceVersionPair = new Tuple<string, string>(sourceName, apiVersion);
+            myApiInfo sourceVersionPair = new myApiInfo(sourceType, apiVersion);
             return sourceVersionPair;
         }
 

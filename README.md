@@ -28,19 +28,19 @@ The function is used to get primitive name of parameter type. For example, **Sys
 
 The function is used to get call chains by bottom-up way. The start point of a call chain is a public method found in the assembly. This function invokes  [LoadMethods](#LoadMethods)  to load methods from the assembly. Then it tries to find the ISymbols of these methods through the method name by  **SymbolFinder.FindDeclarations**. We should judge whether the found method is actually the method we found in the assembly by comparing their namespace and parameters. Then it invokes [FindMethodUp](#FindMethodUp) to find which methods in the source codes call these found public methods recursively.  Finally, the destination of the call chain is a method who has not called by any other methods. 
 
-###FindMethodUp
+### FindMethodUp
 
 The function is used to find a call chain by visiting methods recursively. The input of this function is the ISymbol of a function, it is used to find references where the method are referred by **SymbolFinder.FindReferences**. If there is no reference and the call chain is empty, then the found ISymbol is not used in the source code, it should not be stored in the call chain. If the current call chain is not empty, then the ISymbol should be recorded in the call chain and the **methodsApiInfo** dictionary.  What's more, the **callChain** is used to record the visited ISymbols. If there is reference found, we need to judge whether the found ISymbol is already in the call chain to avoid a dead loop firstly. Then it invokes [GetParentDeclaration](#GetParentDeclaration) to find the parent of this found ISymbol (in the body of which function).  Finally, it invokes [FindMethodUp](#FindMethodUp) to find the upper method recursively.
 
-###GetParentDeclaration
+### GetParentDeclaration
 
 The function is used to find the parent of the ISymbol. To put it simply, it will return the body of which function the ISymbol is in. Since the ISymbol may occur in method, property, constructor, etc, we limit the type range of the parent to **MemberDeclarationSyntax** and **MethodDeclarationSyntax**.
 
-###CompilationDiagnostics
+### CompilationDiagnostics
 
 The function is used to output diagnostics of compilation, when compilation fails.
 
-###WorkspaceDiagnostics
+### WorkspaceDiagnostics
 
 The function is used to output diagnostics of workspace, when it failed to create a workspace. When errors like
 
@@ -48,7 +48,7 @@ The function is used to output diagnostics of workspace, when it failed to creat
 
 happens, you should consider that whether the version of your msbuild is wrong.
 
-###OutputMethodsApiInfo
+### OutputMethodsApiInfo
 
 The function is used to output the dictionary: MethodsApiInfo in the format that Function: {function} calls Api with 
 
@@ -70,7 +70,7 @@ The function is used to register a MSBuild instance with the MSBuildLocator. The
 
 If there are more than one instances of MSBuild on this machine, use this function to set one to use. It may not be a good way to let users choose a version of MSBuild. 
 
-##Program.cs
+## Program.cs
 
 ### Main
 
@@ -80,9 +80,6 @@ The main function invokes [GetChainBottomUp](#GetChainBottomUp) to get call chai
 
 This folder stores some call chain caches.
 
-##Other notes
+## Other notes
 
 If you want to see the code of get call chain by the top-down way. It can be found in former commits [DiscoverPublicMethod/RoslynCompiler.cs at 56393ea5c748b805c47fb54bd1ffb584dd03dbee · MoChilia/DiscoverPublicMethod (github.com)](https://github.com/MoChilia/DiscoverPublicMethod/blob/56393ea5c748b805c47fb54bd1ffb584dd03dbee/DiscoverPublicMethod/RoslynCompiler.cs). See the function GetChainTopDown and FindMethodDown for more details. The two functions are discarded in this version because we choose the bottom-up way to get call chain.
-
-
-

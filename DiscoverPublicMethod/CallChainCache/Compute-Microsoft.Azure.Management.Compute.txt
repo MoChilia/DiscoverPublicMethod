@@ -1,0 +1,181 @@
+Using MSBuild at 'D:\VisualStudioIde\MSBuild\Current\Bin' to load projects.
+Project Name is: Compute
+Assembly Name is: Microsoft.Azure.Management.Compute
+Function: Microsoft.Azure.Commands.Compute.Automation.NewAzureRmGallery.ExecuteCmdlet() calls Api with
+ResourceType: Compute.Galleries; ApiVersion: 2022-01-03
+Function: Microsoft.Azure.Commands.Compute.Automation.UpdateAzureRmGallery.ExecuteCmdlet() calls Api with
+ResourceType: Compute.Galleries; ApiVersion: 2022-01-03
+ResourceType: Compute.GallerySharingProfile; ApiVersion: 2022-01-03
+Function: Microsoft.Azure.Commands.Compute.Automation.GetAzureRmGallery.ExecuteCmdlet() calls Api with
+ResourceType: Compute.Galleries; ApiVersion: 2022-01-03
+ResourceType: Compute.SharedGalleries; ApiVersion: 2022-01-03
+Function: Microsoft.Azure.Commands.Compute.Automation.NewAzureRmVmss.ExecuteCmdlet() calls Api with
+ResourceType: Compute.VirtualMachineScaleSets; ApiVersion: 2022-03-01
+Function: Microsoft.Azure.Commands.Compute.Extension.AzureDiskEncryption.RemoveAzureVmssDiskEncryptionCommand.ExecuteCmdlet() calls Api with
+ResourceType: Compute.VirtualMachineScaleSets; ApiVersion: 2022-03-01
+ResourceType: Compute.VirtualMachineScaleSetExtensions; ApiVersion: 2022-03-01
+Function: Microsoft.Azure.Commands.Compute.Extension.AzureDiskEncryption.GetAzureVmssDiskEncryptionStatusCommand.ExecuteCmdlet() calls Api with
+ResourceType: Compute.VirtualMachineScaleSets; ApiVersion: 2022-03-01
+ResourceType: Compute.VirtualMachineScaleSetVMs; ApiVersion: 2022-03-01
+Function: Microsoft.Azure.Commands.Compute.Extension.AzureDiskEncryption.SetAzureVmssDiskEncryptionExtensionCommand.ExecuteCmdlet() calls Api with
+ResourceType: Compute.VirtualMachineScaleSets; ApiVersion: 2022-03-01
+Function: Microsoft.Azure.Commands.Compute.Automation.GetAzureRmVmss.ExecuteCmdlet() calls Api with
+ResourceType: Compute.VirtualMachineScaleSets; ApiVersion: 2022-03-01
+Function: Microsoft.Azure.Commands.Compute.Automation.GetAzureRmVmssSku.ExecuteCmdlet() calls Api with
+ResourceType: Compute.VirtualMachineScaleSets; ApiVersion: 2022-03-01
+Function: Microsoft.Azure.Commands.Compute.Automation.RepairAzureRmVmssServiceFabricUpdateDomain.ExecuteCmdlet() calls Api with
+ResourceType: Compute.VirtualMachineScaleSets; ApiVersion: 2022-03-01
+Function: Microsoft.Azure.Commands.Compute.Automation.UpdateAzureRmVmssVM.ExecuteCmdlet() calls Api with
+ResourceType: Compute.VirtualMachineScaleSetVMs; ApiVersion: 2022-03-01
+Function: Microsoft.Azure.Commands.Compute.Extension.AzureDiskEncryption.GetAzureVmssVMDiskEncryptionStatusCommand.ExecuteCmdlet() calls Api with
+ResourceType: Compute.VirtualMachineScaleSetVMs; ApiVersion: 2022-03-01
+Function: Microsoft.Azure.Commands.Compute.Automation.GetAzureRmVmssVM.ExecuteCmdlet() calls Api with
+ResourceType: Compute.VirtualMachineScaleSetVMs; ApiVersion: 2022-03-01
+Function: Microsoft.Azure.Commands.Compute.Automation.InvokeAzureRmVmssVMRunCommand.ExecuteCmdlet() calls Api with
+ResourceType: Compute.VirtualMachineScaleSetVMs; ApiVersion: 2022-03-01
+Function: Microsoft.Azure.Commands.Compute.SetAzureRmVMAEMExtension.ExecuteCmdlet() calls Api with
+ResourceType: Compute.VirtualMachines; ApiVersion: 2022-03-01
+ResourceType: Compute.Disks; ApiVersion: 2021-03-02
+ResourceType: Compute.VirtualMachineExtensions; ApiVersion: 2022-03-01
+Function: Microsoft.Azure.Commands.Compute.GetAzureRmVMDiagnosticsExtensionCommand.ExecuteCmdlet() calls Api with
+ResourceType: Compute.VirtualMachines; ApiVersion: 2022-03-01
+Function: Microsoft.Azure.Commands.Compute.SetAzureVMAccessExtensionCommand.ExecuteCmdlet() calls Api with
+ResourceType: Compute.VirtualMachines; ApiVersion: 2022-03-01
+Function: Microsoft.Azure.Commands.Compute.Extension.DSC.SetAzureVMDscExtensionCommand.ExecuteCmdlet() calls Api with
+ResourceType: Compute.VirtualMachines; ApiVersion: 2022-03-01
+Function: Microsoft.Azure.Commands.Compute.Extension.AzureDiskEncryption.DisableAzureDiskEncryptionCommand.ExecuteCmdlet() calls Api with
+ResourceType: Compute.VirtualMachines; ApiVersion: 2022-03-01
+Function: Microsoft.Azure.Commands.Compute.GetAzureVMCommand.ExecuteCmdlet() calls Api with
+ResourceType: Compute.VirtualMachines; ApiVersion: 2022-03-01
+Function: Microsoft.Azure.Commands.Compute.Extension.AzureDiskEncryption.SetAzureDiskEncryptionExtensionCommand.ExecuteCmdlet() calls Api with
+ResourceType: Compute.VirtualMachines; ApiVersion: 2022-03-01
+ResourceType: Compute.VirtualMachineExtensions; ApiVersion: 2022-03-01
+Function: Microsoft.Azure.Commands.Compute.GetAzureVMBootDiagnosticsDataCommand.ExecuteCmdlet() calls Api with
+ResourceType: Compute.VirtualMachines; ApiVersion: 2022-03-01
+Function: Microsoft.Azure.Commands.Compute.Automation.InvokeAzureVMPatchAssessmentCommand.ExecuteCmdlet() calls Api with
+ResourceType: Compute.VirtualMachines; ApiVersion: 2022-03-01
+Function: Microsoft.Azure.Commands.Compute.Automation.InvokeAzureVMInstallPatch.ExecuteCmdlet() calls Api with
+ResourceType: Compute.VirtualMachines; ApiVersion: 2022-03-01
+Function: Microsoft.Azure.Commands.Compute.Automation.InvokeAzureRmVMRunCommand.ExecuteCmdlet() calls Api with
+ResourceType: Compute.VirtualMachines; ApiVersion: 2022-03-01
+Function: Microsoft.Azure.Commands.Compute.Automation.NewAzureCapacityReservationGroup.ExecuteCmdlet() calls Api with
+ResourceType: Compute.CapacityReservationGroups; ApiVersion: 2022-03-01
+Function: Microsoft.Azure.Commands.Compute.Automation.UpdateAzureCapacityReservationGroup.ExecuteCmdlet() calls Api with
+ResourceType: Compute.CapacityReservationGroups; ApiVersion: 2022-03-01
+Function: Microsoft.Azure.Commands.Compute.Automation.GetAzureCapacityReservationGroup.ExecuteCmdlet() calls Api with
+ResourceType: Compute.CapacityReservationGroups; ApiVersion: 2022-03-01
+Function: Microsoft.Azure.Commands.Compute.Automation.NewAzureCapacityReservation.ExecuteCmdlet() calls Api with
+ResourceType: Compute.CapacityReservations; ApiVersion: 2022-03-01
+Function: Microsoft.Azure.Commands.Compute.Automation.UpdateAzureCapacityReservation.ExecuteCmdlet() calls Api with
+ResourceType: Compute.CapacityReservations; ApiVersion: 2022-03-01
+Function: Microsoft.Azure.Commands.Compute.Automation.GetAzurecapacityReservation.ExecuteCmdlet() calls Api with
+ResourceType: Compute.CapacityReservations; ApiVersion: 2022-03-01
+Function: Microsoft.Azure.Commands.Compute.Automation.NewAzureRmDedicatedHostGroup.ExecuteCmdlet() calls Api with
+ResourceType: Compute.DedicatedHostGroups; ApiVersion: 2022-03-01
+Function: Microsoft.Azure.Commands.Compute.Automation.GetAzureRmDedicatedHostGroup.ExecuteCmdlet() calls Api with
+ResourceType: Compute.DedicatedHostGroups; ApiVersion: 2022-03-01
+Function: Microsoft.Azure.Commands.Compute.Automation.NewAzureRmDedicatedHost.ExecuteCmdlet() calls Api with
+ResourceType: Compute.DedicatedHosts; ApiVersion: 2022-03-01
+Function: Microsoft.Azure.Commands.Compute.Automation.GetAzureRmDedicatedHost.ExecuteCmdlet() calls Api with
+ResourceType: Compute.DedicatedHosts; ApiVersion: 2022-03-01
+Function: Microsoft.Azure.Commands.Compute.Automation.NewAzureDiskAccess.ExecuteCmdlet() calls Api with
+ResourceType: Compute.DiskAccesses; ApiVersion: 2021-03-02
+Function: Microsoft.Azure.Commands.Compute.Automation.GetAzureDiskAccess.ExecuteCmdlet() calls Api with
+ResourceType: Compute.DiskAccesses; ApiVersion: 2021-03-02
+Function: Microsoft.Azure.Commands.Compute.Automation.UpdateAzureRmDiskEncryptionSet.ExecuteCmdlet() calls Api with
+ResourceType: Compute.DiskEncryptionSets; ApiVersion: 2021-03-02
+Function: Microsoft.Azure.Commands.Compute.Automation.GetAzureRmDiskEncryptionSet.ExecuteCmdlet() calls Api with
+ResourceType: Compute.DiskEncryptionSets; ApiVersion: 2021-03-02
+Function: Microsoft.Azure.Commands.Compute.Automation.GetAzureDiskEncryptionSetAssociatedResource.ExecuteCmdlet() calls Api with
+ResourceType: Compute.DiskEncryptionSets; ApiVersion: 2021-03-02
+Function: Microsoft.Azure.Commands.Compute.StorageServices.AddAzureVhdCommand.ExecuteCmdlet() calls Api with
+ResourceType: Compute.Disks; ApiVersion: 2021-03-02
+Function: Microsoft.Azure.Commands.Compute.Automation.UpdateAzureRmDisk.ExecuteCmdlet() calls Api with
+ResourceType: Compute.Disks; ApiVersion: 2021-03-02
+Function: Microsoft.Azure.Commands.Compute.Automation.GetAzureRmDisk.ExecuteCmdlet() calls Api with
+ResourceType: Compute.Disks; ApiVersion: 2021-03-02
+Function: Microsoft.Azure.Commands.Compute.TestAzureRmVMAEMExtension.ExecuteCmdlet() calls Api with
+ResourceType: Compute.Disks; ApiVersion: 2021-03-02
+Function: Microsoft.Azure.Commands.Compute.Automation.GrantAzureRmDiskAccess.ExecuteCmdlet() calls Api with
+ResourceType: Compute.Disks; ApiVersion: 2021-03-02
+Function: Microsoft.Azure.Commands.Compute.Automation.NewAzureRmGalleryImage.ExecuteCmdlet() calls Api with
+ResourceType: Compute.GalleryImages; ApiVersion: 2022-01-03
+Function: Microsoft.Azure.Commands.Compute.Automation.UpdateAzureRmGalleryImage.ExecuteCmdlet() calls Api with
+ResourceType: Compute.GalleryImages; ApiVersion: 2022-01-03
+Function: Microsoft.Azure.Commands.Compute.NewAzureVMCommand.Parameters.CreateConfigAsync() calls Api with
+ResourceType: Compute.GalleryImages; ApiVersion: 2022-01-03
+ResourceType: Compute.GalleryImageVersions; ApiVersion: 2022-01-03
+ResourceType: Compute.Images; ApiVersion: 2022-03-01
+ResourceType: Compute.SshPublicKeys; ApiVersion: 2022-03-01
+ResourceType: Compute.VirtualMachineImages; ApiVersion: 2022-03-01
+ResourceType: Compute.VirtualMachineSizes; ApiVersion: 2022-03-01
+Function: Microsoft.Azure.Commands.Compute.NewAzureVMCommand.ExecuteCmdlet() calls Api with
+ResourceType: Compute.GalleryImages; ApiVersion: 2022-01-03
+ResourceType: Compute.GalleryImageVersions; ApiVersion: 2022-01-03
+ResourceType: Compute.Images; ApiVersion: 2022-03-01
+ResourceType: Compute.SshPublicKeys; ApiVersion: 2022-03-01
+ResourceType: Compute.VirtualMachineExtensionImages; ApiVersion: 2022-03-01
+ResourceType: Compute.VirtualMachineImages; ApiVersion: 2022-03-01
+Function: Microsoft.Azure.Commands.Compute.Automation.NewAzureRmVmss.Parameters.CreateConfigAsync() calls Api with
+ResourceType: Compute.GalleryImages; ApiVersion: 2022-01-03
+ResourceType: Compute.GalleryImageVersions; ApiVersion: 2022-01-03
+ResourceType: Compute.Images; ApiVersion: 2022-03-01
+ResourceType: Compute.VirtualMachineImages; ApiVersion: 2022-03-01
+Function: Microsoft.Azure.Commands.Compute.Automation.GetAzureRmGalleryImage.ExecuteCmdlet() calls Api with
+ResourceType: Compute.GalleryImages; ApiVersion: 2022-01-03
+ResourceType: Compute.SharedGalleryImages; ApiVersion: 2022-01-03
+Function: Microsoft.Azure.Commands.Compute.Automation.NewAzureRmGalleryImageVersion.ExecuteCmdlet() calls Api with
+ResourceType: Compute.GalleryImageVersions; ApiVersion: 2022-01-03
+Function: Microsoft.Azure.Commands.Compute.Automation.UpdateAzureRmGalleryImageVersion.ExecuteCmdlet() calls Api with
+ResourceType: Compute.GalleryImageVersions; ApiVersion: 2022-01-03
+Function: Microsoft.Azure.Commands.Compute.Automation.GetAzureRmGalleryImageVersion.ExecuteCmdlet() calls Api with
+ResourceType: Compute.GalleryImageVersions; ApiVersion: 2022-01-03
+ResourceType: Compute.SharedGalleryImageVersions; ApiVersion: 2022-01-03
+Function: Microsoft.Azure.Commands.Compute.Automation.NewAzureRmImage.ExecuteCmdlet() calls Api with
+ResourceType: Compute.Images; ApiVersion: 2022-03-01
+Function: Microsoft.Azure.Commands.Compute.Automation.UpdateAzureRmImage.ExecuteCmdlet() calls Api with
+ResourceType: Compute.Images; ApiVersion: 2022-03-01
+Function: Microsoft.Azure.Commands.Compute.Automation.GetAzureRmImage.ExecuteCmdlet() calls Api with
+ResourceType: Compute.Images; ApiVersion: 2022-03-01
+Function: Microsoft.Azure.Commands.Compute.Automation.ExportAzureRmLogAnalyticRequestRateByInterval.ExecuteCmdlet() calls Api with
+ResourceType: Compute.LogAnalytics; ApiVersion: 2022-03-01
+Function: Microsoft.Azure.Commands.Compute.Automation.ExportAzureRmLogAnalyticThrottledRequests.ExecuteCmdlet() calls Api with
+ResourceType: Compute.LogAnalytics; ApiVersion: 2022-03-01
+Function: Microsoft.Azure.Commands.Compute.Automation.NewAzureRmProximityPlacementGroup.ExecuteCmdlet() calls Api with
+ResourceType: Compute.ProximityPlacementGroups; ApiVersion: 2022-03-01
+Function: Microsoft.Azure.Commands.Compute.Automation.GetAzureRmProximityPlacementGroup.ExecuteCmdlet() calls Api with
+ResourceType: Compute.ProximityPlacementGroups; ApiVersion: 2022-03-01
+Function: Microsoft.Azure.Commands.Compute.Automation.GetAzureRmComputeResourceSku.ExecuteCmdlet() calls Api with
+ResourceType: Compute.ResourceSkus; ApiVersion: 2021-07-01
+Function: Microsoft.Azure.Commands.Compute.Automation.NewAzureRestorePointCollection.ExecuteCmdlet() calls Api with
+ResourceType: Compute.RestorePointCollections; ApiVersion: 2022-03-01
+Function: Microsoft.Azure.Commands.Compute.Automation.UpdateAzureRestorePointCollection.ExecuteCmdlet() calls Api with
+ResourceType: Compute.RestorePointCollections; ApiVersion: 2022-03-01
+Function: Microsoft.Azure.Commands.Compute.Automation.NewAzureRestorePoint.ExecuteCmdlet() calls Api with
+ResourceType: Compute.RestorePoints; ApiVersion: 2022-03-01
+Function: Microsoft.Azure.Commands.Compute.Automation.GetAzureRestorePoint.ExecuteCmdlet() calls Api with
+ResourceType: Compute.RestorePoints; ApiVersion: 2022-03-01
+Function: Microsoft.Azure.Commands.Compute.Automation.NewAzureRmSnapshot.ExecuteCmdlet() calls Api with
+ResourceType: Compute.Snapshots; ApiVersion: 2021-03-02
+Function: Microsoft.Azure.Commands.Compute.Automation.UpdateAzureRmSnapshot.ExecuteCmdlet() calls Api with
+ResourceType: Compute.Snapshots; ApiVersion: 2021-03-02
+Function: Microsoft.Azure.Commands.Compute.Automation.GetAzureRmSnapshot.ExecuteCmdlet() calls Api with
+ResourceType: Compute.Snapshots; ApiVersion: 2021-03-02
+Function: Microsoft.Azure.Commands.Compute.Automation.GrantAzureRmSnapshotAccess.ExecuteCmdlet() calls Api with
+ResourceType: Compute.Snapshots; ApiVersion: 2021-03-02
+Function: Microsoft.Azure.Commands.Compute.Automation.GetAzureSshKey.ExecuteCmdlet() calls Api with
+ResourceType: Compute.SshPublicKeys; ApiVersion: 2022-03-01
+Function: Microsoft.Azure.Commands.Compute.Automation.NewAzureSshKey.ExecuteCmdlet() calls Api with
+ResourceType: Compute.SshPublicKeys; ApiVersion: 2022-03-01
+Function: Microsoft.Azure.Commands.Compute.Automation.UpdateAzureSshKey.ExecuteCmdlet() calls Api with
+ResourceType: Compute.SshPublicKeys; ApiVersion: 2022-03-01
+Function: Microsoft.Azure.Commands.Compute.Extension.AzureDiskEncryption.SetAzureVMBackupExtension.ExecuteCmdlet() calls Api with
+ResourceType: Compute.VirtualMachineExtensions; ApiVersion: 2022-03-01
+Function: Microsoft.Azure.Commands.Compute.Extension.DSC.GetAzureVMDscExtensionCommand.ExecuteCmdlet() calls Api with
+ResourceType: Compute.VirtualMachineExtensions; ApiVersion: 2022-03-01
+Function: Microsoft.Azure.Commands.Compute.Automation.GetAzureRmVMRunCommandDocument.ExecuteCmdlet() calls Api with
+ResourceType: Compute.VirtualMachineRunCommands; ApiVersion: 2022-03-01
+Function: Microsoft.Azure.Commands.Compute.Automation.GetAzureRmVmssRollingUpgrade.ExecuteCmdlet() calls Api with
+ResourceType: Compute.VirtualMachineScaleSetRollingUpgrades; ApiVersion: 2022-03-01
+Function: Microsoft.Azure.Commands.Compute.Automation.AddAzVmssRunCommand.ExecuteCmdlet() calls Api with
+ResourceType: Compute.VirtualMachineScaleSetVMRunCommands; ApiVersion: 2022-03-01

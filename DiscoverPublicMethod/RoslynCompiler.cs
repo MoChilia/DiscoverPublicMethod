@@ -16,7 +16,7 @@ namespace DiscoverPublicMethod
 {
     public class RoslynCompiler
     {
-        public static Dictionary<ISymbol, HashSet<myApiInfo>> methodsApiInfo = new Dictionary<ISymbol, HashSet<myApiInfo>>();
+        public static Dictionary<ISymbol, HashSet<AzureApiInfo>> methodsApiInfo = new Dictionary<ISymbol, HashSet<AzureApiInfo>>();
         public static Solution solution;
 
         public async Task GetChainBottomUp(string solutionPath, string projectName)
@@ -31,7 +31,7 @@ namespace DiscoverPublicMethod
             string assemblyName = $"Microsoft.Azure.Management.{projectName}";
             Console.WriteLine("Assembly Name is: " + assemblyName);
             var assembly = new Asm();
-            List<myMethodInfo> methodInfos = assembly.loadMethods(projectName);
+            List<AzureMethodInfo> methodInfos = assembly.LoadMethods(projectName);
             foreach (var method in methodInfos)
             {
                 var methodFullName = method.NameSpace + "." + method.Method + method.Parameters;
@@ -47,7 +47,7 @@ namespace DiscoverPublicMethod
             }
         }
 
-        public async Task FindMethodUp(ISymbol function, List<ISymbol> callChain, myMethodInfo method)
+        public async Task FindMethodUp(ISymbol function, List<ISymbol> callChain, AzureMethodInfo method)
         {
             var callers = await SymbolFinder.FindReferencesAsync(function, solution);
             var referenced = callers.FirstOrDefault();
@@ -56,13 +56,13 @@ namespace DiscoverPublicMethod
             {
                 if (!methodsApiInfo.ContainsKey(function))
                 {
-                    HashSet<myApiInfo> apiInfoSet = new HashSet<myApiInfo>();
+                    HashSet<AzureApiInfo> apiInfoSet = new HashSet<AzureApiInfo>();
                     apiInfoSet.Add(method.ApiInfo);
                     methodsApiInfo.Add(function, apiInfoSet);
                 }
                 else
                 {
-                    HashSet<myApiInfo> apiInfoSet = methodsApiInfo[function];
+                    HashSet<AzureApiInfo> apiInfoSet = methodsApiInfo[function];
                     if (!apiInfoSet.Contains(method.ApiInfo))
                     {
                         apiInfoSet.Add(method.ApiInfo);
@@ -108,16 +108,16 @@ namespace DiscoverPublicMethod
             return result;
         }
 
-        private void compilationDiagnostics(Compilation compilation)
+        private void CompilationDiagnostics(Compilation compilation)
         {
             if (compilation.GetDiagnostics().Any())
             {
-                var errors = compilation.GetDiagnostics().ToList();
-                foreach (var diag in errors)
-                    Console.WriteLine(diag);
+                var diagnostics = compilation.GetDiagnostics().ToList();
+                foreach (var diagnostic in diagnostics)
+                    Console.WriteLine(diagnostic);
             }
         }
-        private void workspaceDiagnostics(MSBuildWorkspace workspace)
+        private void WorkspaceDiagnostics(MSBuildWorkspace workspace)
         {
             ImmutableList<WorkspaceDiagnostic> diagnostics = workspace.Diagnostics;
             foreach (var diagnostic in diagnostics)
@@ -142,7 +142,7 @@ namespace DiscoverPublicMethod
                     Console.WriteLine($"Function: {function} calls Api with");
                     foreach (var apiInfo in apiInfoSet)
                     {
-                        Console.WriteLine($"SourceType: {apiInfo.SourceType}; ApiVersion: {apiInfo.ApiVersion}");
+                        Console.WriteLine($"ResourceType: {apiInfo.ResourceType}; ApiVersion: {apiInfo.ApiVersion}");
                     }
                 }
                 if (inFile && filePath != null)
@@ -152,7 +152,7 @@ namespace DiscoverPublicMethod
                         sw.WriteLine($"Function: {function} calls Api with");
                         foreach (var apiInfo in apiInfoSet)
                         {
-                            sw.WriteLine($"SourceType: {apiInfo.SourceType}; ApiVersion: {apiInfo.ApiVersion}");
+                            sw.WriteLine($"ResourceType: {apiInfo.ResourceType}; ApiVersion: {apiInfo.ApiVersion}");
                         }
                     }
                 }
@@ -200,7 +200,6 @@ namespace DiscoverPublicMethod
                     sw.WriteLine("\n");
                 }
             }
-
         }
 
         private void RegisterInstance()

@@ -1,0 +1,28 @@
+Function: Microsoft.Azure.Commands.KeyVault.Commands.NewAzureManagedHsm.ExecuteCmdlet() calls Api with
+ResourceType: KeyVault.ManagedHsms; ApiVersion: 2021-06-01-preview
+Function: Microsoft.Azure.Commands.KeyVault.Commands.UpdateAzureManagedHsm.ExecuteCmdlet() calls Api with
+ResourceType: KeyVault.ManagedHsms; ApiVersion: 2021-06-01-preview
+Function: Microsoft.Azure.Commands.KeyVault.RemoveAzureManagedHsm.ExecuteCmdlet() calls Api with
+ResourceType: KeyVault.ManagedHsms; ApiVersion: 2021-06-01-preview
+Function: Microsoft.Azure.Commands.KeyVault.Commands.GetAzureManagedHsm.ExecuteCmdlet() calls Api with
+ResourceType: KeyVault.ManagedHsms; ApiVersion: 2021-06-01-preview
+Function: Microsoft.Azure.Commands.KeyVault.UndoAzureKeyVaultRemoval.ExecuteCmdlet() calls Api with
+ResourceType: KeyVault.Vaults; ApiVersion: 2021-06-01-preview
+Function: Microsoft.Azure.Commands.KeyVault.NewAzureKeyVault.ExecuteCmdlet() calls Api with
+ResourceType: KeyVault.Vaults; ApiVersion: 2021-06-01-preview
+Function: Microsoft.Azure.Commands.KeyVault.UpdateTopLevelResourceCommand.ExecuteCmdlet() calls Api with
+ResourceType: KeyVault.Vaults; ApiVersion: 2021-06-01-preview
+Function: Microsoft.Azure.Commands.KeyVault.UpdateAzureKeyVaultNetworkRuleSet.ExecuteCmdlet() calls Api with
+ResourceType: KeyVault.Vaults; ApiVersion: 2021-06-01-preview
+Function: Microsoft.Azure.Commands.KeyVault.AddAzureKeyVaultNetworkRule.ExecuteCmdlet() calls Api with
+ResourceType: KeyVault.Vaults; ApiVersion: 2021-06-01-preview
+Function: Microsoft.Azure.Commands.KeyVault.RemoveAzureRmKeyVaultNetworkRule.ExecuteCmdlet() calls Api with
+ResourceType: KeyVault.Vaults; ApiVersion: 2021-06-01-preview
+Function: Microsoft.Azure.Commands.KeyVault.RemoveAzureKeyVault.ExecuteCmdlet() calls Api with
+ResourceType: KeyVault.Vaults; ApiVersion: 2021-06-01-preview
+Function: Microsoft.Azure.Commands.KeyVault.SetAzureKeyVaultAccessPolicy.ExecuteCmdlet() calls Api with
+ResourceType: KeyVault.Vaults; ApiVersion: 2021-06-01-preview
+Function: Microsoft.Azure.Commands.KeyVault.RemoveAzureKeyVaultAccessPolicy.ExecuteCmdlet() calls Api with
+ResourceType: KeyVault.Vaults; ApiVersion: 2021-06-01-preview
+Function: Microsoft.Azure.Commands.KeyVault.GetAzureKeyVault.ExecuteCmdlet() calls Api with
+ResourceType: KeyVault.Vaults; ApiVersion: 2021-06-01-preview

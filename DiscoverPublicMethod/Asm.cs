@@ -6,43 +6,43 @@ using Microsoft.CSharp;
 
 namespace DiscoverPublicMethod
 {
-    public struct myApiInfo
+    public struct AzureApiInfo
     {
-        public myApiInfo(string sourceType, string apiVersion)
+        public AzureApiInfo(string resourceType, string apiVersion)
         {
-            SourceType = sourceType;
+            ResourceType = resourceType;
             ApiVersion = apiVersion;
         }
-        public string SourceType { get; set; }
+        public string ResourceType { get; set; }
         public string ApiVersion { get; set; }
-        public override string ToString() => $"({SourceType}, {ApiVersion})";
+        public override string ToString() => $"({ResourceType}, {ApiVersion})";
     }
-    public struct myMethodInfo
+    public struct AzureMethodInfo
     {
-        public myMethodInfo(string nameSpace, string method, string parameters, string resourceType, string apiVersion)
+        public AzureMethodInfo(string nameSpace, string method, string parameters, string resourceType, string apiVersion)
         {
             NameSpace = nameSpace;
             Method = method;
             Parameters = parameters;
-            ApiInfo = new myApiInfo(resourceType, apiVersion);
+            ApiInfo = new AzureApiInfo(resourceType, apiVersion);
         }
         public string NameSpace { get; set; }
         public string Method { get; set; }
         public string Parameters { get; set; }
-        public myApiInfo ApiInfo { get; set; }
-        public override string ToString() => $"{NameSpace}.{Method}.{Parameters}[SourceType: {ApiInfo.SourceType}, ApiVersion: {ApiInfo.ApiVersion}]";
+        public AzureApiInfo ApiInfo { get; set; }
+        public override string ToString() => $"{NameSpace}.{Method}.{Parameters}[ResourceType: {ApiInfo.ResourceType}, ApiVersion: {ApiInfo.ApiVersion}]";
     }
 
     public class Asm
     {
-        public List<myMethodInfo> loadMethods(string projectName)
+        public List<AzureMethodInfo> LoadMethods(string projectName)
         {
             // Use the projrect name to load the SDK assembly into the current application domain.
             string asmName = $"Microsoft.Azure.Management.{projectName}";
             var a = Assembly.Load(asmName);
             var SdkInfo = a.GetType($"{asmName}.SdkInfo");
             var ApiInfos = (IEnumerable<Tuple<string, string, string>>) SdkInfo.GetProperty($"ApiInfo_{projectName}ManagementClient").GetValue(null);
-            var typeNameList = new List<myMethodInfo>();
+            var typeNameList = new List<AzureMethodInfo>();
             foreach(var type in a.GetTypes())
             {
                 if (type.IsNestedPrivate || type.IsNotPublic || !type.Namespace.Equals(asmName))
@@ -53,15 +53,15 @@ namespace DiscoverPublicMethod
                 foreach (var method in type.GetMethods(BindingFlags.Public | BindingFlags.Static | BindingFlags.Instance))
                 {
                     string parameterName = GetParameterName(method);
-                    typeNameList.Add(new myMethodInfo(type.FullName, method.Name, parameterName, ApiInfo.SourceType, ApiInfo.ApiVersion));
+                    typeNameList.Add(new AzureMethodInfo(type.FullName, method.Name, parameterName, ApiInfo.ResourceType, ApiInfo.ApiVersion));
                 }
             }
             return typeNameList;
         }
 
-        private myApiInfo GetApiInfo(string typeName, IEnumerable<Tuple<string, string, string>> ApiInfos)
+        private AzureApiInfo GetApiInfo(string typeName, IEnumerable<Tuple<string, string, string>> ApiInfos)
         {
-            string sourceType = "null";
+            string resourceType = "null";
             string apiVersion = "null";
             Tuple<string, string, string> source;
             if (typeName.Contains("ManagementClient"))
@@ -91,10 +91,10 @@ namespace DiscoverPublicMethod
             }
             if (source != null)
             {
-                sourceType = source.Item1 + "." + source.Item2;
+                resourceType = source.Item1 + "." + source.Item2;
                 apiVersion = source.Item3;
             }
-            myApiInfo sourceVersionPair = new myApiInfo(sourceType, apiVersion);
+            AzureApiInfo sourceVersionPair = new AzureApiInfo(resourceType, apiVersion);
             return sourceVersionPair;
         }
 

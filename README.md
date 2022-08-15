@@ -1,24 +1,24 @@
 # DiscoverPublicMethod
 
-This project is used to find out through which paths the public methods in source code refer to the APIs in the SDK. A call chain is found to figue out the public methods call which methods, and these methods call which methods, recursively, until an API in SDK is called. When you execute the main function, you can get a dictionary recorded the public method and the called API's source type and version.
+This project is used to find out through which paths the public methods in source code refer to the APIs in the SDK. A call chain is found to figure out the public methods call which methods, and these methods call which methods, recursively, until an API in SDK is called. When you execute the main function, you can get a dictionary recorded the public method and the called API's source type and version.
 
 The project includes three csharp files, they are Program.cs, Asm.cs and RoslynCompiler.cs. The following is an introduction for them.
 
 ## Asm.cs
 
-## LoadMethods
+### LoadMethods
 
-The function is used to load methods from assembly. Since we just focus on the SDK assembly, we use the project name to load the assembly “Microsoft.Azure.Management.\*”. First we aim to find Apis' resource type and version.  There is a internal static class called "**SdkInfo**" in the assembly and a public static property called "**ApiInfo_*ManagementClient**" in this class. This property records Apis'resource type and version.  Next, we are going to find all the public methods in this assembly . Note that we need to exclude the private classes, nested private classes and classes in “Microsoft.Azure.Management.Model.\*” namespace. 
+The function is used to load methods from assembly. Since we just focus on the SDK assembly, we use the project name to load the assembly “Microsoft.Azure.Management.\*”. First we aim to find Apis' resource type and version.  There is an internal static class called "**SdkInfo**" in the assembly and a public static property called "**ApiInfo_*ManagementClient**" in this class. This property records Apis' resource type and version.  Next, we are going to find all the public methods in this assembly . Note that we need to exclude the private classes, nested private classes and classes in “Microsoft.Azure.Management.Model.\*” namespace. 
 
-## GetApiInfo
+### GetApiInfo
 
 The function is used to get ApiInfo by method's type name. The class "\*ManagementClient" controls all the public. There may be an entry in  "ApiInfo_*ManagementClient" whose first item is "\*ManagementClient". When "\*ManagementClient" has a version, I think it is assumed that all the versions are the same. If there is no one, then ignore it. We won't call a method in this class. Maybe getting ApiInfo through string processing is not the most proper way, it can be improved.
 
-## GetParameterName
+### GetParameterName
 
 The function is used to get parameters from **MethodInfo**. It invokes [GetPrimitiveNameOfParameterType](#GetPrimitiveNameOfParameterType) to get the primitive name of each type of the parameters so that we can compare them with the parameters output by **ISymbol.ToString()** returned by SymbolFinder.FindDeclarations. The output of this function ensures their formats are the same.
 
-## GetPrimitiveNameOfParameterType
+### GetPrimitiveNameOfParameterType
 
 The function is used to get primitive name of parameter type. For example, **System.String** should be turned into **string**. Note that **System.Nullable`1[System.Int32]** is a special case, it should be turned into **int?**. 
 
@@ -34,7 +34,7 @@ The function is used to find a call chain by visiting methods recursively. The i
 
 ### GetParentDeclaration
 
-The function is used to find the parent of the ISymbol. To put it simply, it will return the body of which function the ISymbol is in. Since the ISymbol may occur in method, property, constructor, etc, we limit the type range of the parent to **MemberDeclarationSyntax** and **MethodDeclarationSyntax**.
+The function is used to find the parent of the ISymbol. To put it simply, it will return the body of which function the ISymbol is in. Since the ISymbol may occur in method, property, constructor, etc., we limit the type range of the parent to **MemberDeclarationSyntax** and **MethodDeclarationSyntax**.
 
 ### CompilationDiagnostics
 
@@ -46,7 +46,7 @@ The function is used to output diagnostics of workspace, when it failed to creat
 
 *\VisualStudioIde\MSBuild\Current\Bin\amd64\Microsoft.Common.CurrentVersion.targets: (1806, 5): The "GetReferenceNearestTargetFrameworkTask" task could not be instantiated from the assembly "D:\VisualStudioIde\Common7\IDE\CommonExtensions\Microsoft\NuGet\NuGet.Build.Tasks.dll". Please verify the task assembly has been built using the same version of the Microsoft.Build.Framework assembly as the one installed on your computer and that your host application is not missing a binding redirect for Microsoft.Build.Framework.* 
 
-happens, you should consider that whether the version of your msbuild is wrong.
+happens, you should consider that whether the version of your MSBuild is wrong.
 
 ### OutputMethodsApiInfo
 
